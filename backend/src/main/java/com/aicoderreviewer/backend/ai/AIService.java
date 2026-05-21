@@ -1,5 +1,5 @@
 package com.aicoderreviewer.backend.ai;
-
+import org.springframework.cache.annotation.Cacheable;
 import com.aicoderreviewer.backend.service.LanguageDetectorService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,7 +31,7 @@ public class AIService {
             .build();
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-
+    @Cacheable(value = "reviews", key = "#code")
     public String analyzeCode(String fileName, String code) {
 
         try {
