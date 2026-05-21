@@ -144,6 +144,7 @@
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 		</dependency>
+<<<<<<< HEAD
 
 		<!-- DOTENV -->
 
@@ -161,6 +162,11 @@
 			<scope>test</scope>
 		</dependency>
 
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
 	</dependencies>
 
 	<!-- BUILD -->

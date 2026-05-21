@@ -1,5 +1,6 @@
 package com.aicoderreviewer.backend.ai;
 
+import com.aicoderreviewer.backend.service.LanguageDetectorService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -23,13 +24,15 @@ public class AIService {
 
     private final PromptBuilder promptBuilder;
 
+    private final LanguageDetectorService detector;
+
     private final WebClient webClient = WebClient.builder()
             .baseUrl("https://api.groq.com/openai")
             .build();
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public String analyzeCode(String code) {
+    public String analyzeCode(String fileName, String code) {
 
         try {
 
@@ -38,8 +41,22 @@ public class AIService {
                 return "Code input is empty.";
             }
 
-            String prompt = promptBuilder
-                    .buildCodeReviewPrompt(code);
+            // DETECT LANGUAGE
+            String language = detector.detectLanguage(fileName);
+
+            // PROMPT
+            String prompt = """
+                    Analyze this %s code.
+
+                    Give:
+                    1. Bugs
+                    2. Optimizations
+                    3. Security issues
+                    4. Code quality suggestions
+
+                    Code:
+                    %s
+                    """.formatted(language, code);
 
             // MESSAGE
             Map<String, Object> message = Map.of(

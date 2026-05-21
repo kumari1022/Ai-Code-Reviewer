@@ -1,16 +1,10 @@
-
 package com.aicoderreviewer.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-
-import java.time.LocalDateTime;
+import lombok.Data;
 
 @Entity
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class CodeFile {
 
     @Id
@@ -19,11 +13,9 @@ public class CodeFile {
 
     private String fileName;
 
-    private String fileType;
+    @Column(columnDefinition = "TEXT")
+    private String code;
 
-    private String filePath;
-
-    private Long fileSize;
-
-    private LocalDateTime uploadedAt;
+    @Column(columnDefinition = "TEXT")
+    private String review;
 }

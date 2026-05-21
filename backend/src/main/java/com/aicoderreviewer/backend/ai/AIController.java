@@ -16,7 +16,10 @@ public class AIController {
     ) {
 
         String result = aiService
-                .analyzeCode(request.getCode());
+                .analyzeCode(
+                        "sample.java",
+                        request.getCode()
+                );
 
         return new AIResponse(result);
     }

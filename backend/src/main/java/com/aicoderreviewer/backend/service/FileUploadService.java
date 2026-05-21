@@ -1,22 +1,11 @@
 package com.aicoderreviewer.backend.service;
 
+import com.aicoderreviewer.backend.ai.AIService;
 import com.aicoderreviewer.backend.entity.CodeFile;
-
 import com.aicoderreviewer.backend.repository.CodeFileRepository;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
-
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
-
-import java.io.IOException;
-
-import java.time.LocalDateTime;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -24,67 +13,27 @@ public class FileUploadService {
 
     private final CodeFileRepository repository;
 
-    private static final String UPLOAD_DIR =
-            "uploads/";
+    private final AIService aiService;
 
-    public CodeFile uploadFile(
-            MultipartFile file
-    ) throws IOException {
+    public CodeFile uploadFile(MultipartFile file)
+            throws Exception {
 
-        String fileName =
-                file.getOriginalFilename();
+        String code = new String(file.getBytes());
 
-        // VALIDATION
-        if(fileName == null ||
-                fileName.isBlank()) {
-
-            throw new RuntimeException(
-                    "Invalid file name."
-            );
-        }
-
-        // ALLOW ONLY JAVA FILES
-        if(!fileName.endsWith(".java")) {
-
-            throw new RuntimeException(
-                    "Only Java files allowed."
-            );
-        }
-
-        // SAFE FILE NAME
-        String safeFileName =
-                UUID.randomUUID()
-                        + "_" + fileName;
-
-        String filePath =
-                UPLOAD_DIR + safeFileName;
-
-        System.out.println(
-                "Uploading file: " + safeFileName
+        String review = aiService.analyzeCode(
+                file.getOriginalFilename(),
+                code
         );
 
-        file.transferTo(
-                new File(filePath)
+        CodeFile codeFile = new CodeFile();
+
+        codeFile.setFileName(
+                file.getOriginalFilename()
         );
 
-        CodeFile codeFile =
-                CodeFile.builder()
+        codeFile.setCode(code);
 
-                        .fileName(fileName)
-
-                        .fileType(
-                                file.getContentType()
-                        )
-
-                        .filePath(filePath)
-
-                        .fileSize(file.getSize())
-
-                        .uploadedAt(
-                                LocalDateTime.now()
-                        )
-
-                        .build();
+        codeFile.setReview(review);
 
         return repository.save(codeFile);
     }
