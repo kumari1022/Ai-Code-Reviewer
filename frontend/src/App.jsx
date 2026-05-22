@@ -1,18 +1,34 @@
+import {
+  BrowserRouter,
+  Routes,
+  Route
+} from "react-router-dom";
+
+import DashboardPage from "./pages/DashboardPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 function App() {
+
+  localStorage.setItem("token", "demo");
 
   return (
 
-    <div className="p-10">
+    <BrowserRouter>
 
-      <h1 className="text-4xl font-bold text-blue-600">
-        AI Code Reviewer
-      </h1>
+      <Routes>
 
-      <p className="mt-4 text-gray-600">
-        Enterprise AI-powered code analysis platform
-      </p>
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
 
-    </div>
+      </Routes>
+
+    </BrowserRouter>
   );
 }
 
