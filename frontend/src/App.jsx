@@ -3,7 +3,7 @@ import {
   Routes,
   Route,
 } from "react-router-dom";
-
+import ReviewPage from "./pages/ReviewPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -28,7 +28,10 @@ function App() {
             </ProtectedRoute>
           }
         />
-
+        <Route
+          path="/review"
+          element={<ReviewPage />}
+       />
         <Route
           path="/upload"
           element={

@@ -25,7 +25,7 @@ function UploadPage() {
       const token = localStorage.getItem("token");
 
       await axios.post(
-        "http://localhost:8080/api/files/upload",
+        "http://localhost:8081/api/files/upload",
         formData,
         {
           headers: {
@@ -34,6 +34,7 @@ function UploadPage() {
           }
         }
       );
+      window.location.href = "/review";
 
       alert("File Uploaded Successfully");
 
