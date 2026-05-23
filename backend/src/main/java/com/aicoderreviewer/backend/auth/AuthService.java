@@ -29,6 +29,7 @@ public class AuthService {
                 .email(request.getEmail())
 
                 .password(
+
                         passwordEncoder.encode(
                                 request.getPassword()
                         )
@@ -49,11 +50,19 @@ public class AuthService {
 
         User user = repository.findByEmail(
                 request.getEmail()
-        ).orElseThrow();
+        ).orElseThrow(() ->
 
-        if(!passwordEncoder.matches(
+                new RuntimeException(
+                        "User not found"
+                )
+        );
+
+        if (!passwordEncoder.matches(
+
                 request.getPassword(),
+
                 user.getPassword()
+
         )) {
 
             throw new RuntimeException(

@@ -1,23 +1,17 @@
 package com.aicoderreviewer.backend.security;
 
 import org.springframework.context.annotation.Bean;
-
 import org.springframework.context.annotation.Configuration;
-
-import org.springframework.security.config.Customizer;
 
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
 import org.springframework.security.config.http.SessionCreationPolicy;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.authentication.AuthenticationManager;
 
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 @Configuration
 public class SecurityConfig {
 
@@ -27,40 +21,36 @@ public class SecurityConfig {
     ) throws Exception {
 
         http
+
+                .cors(cors -> {})
+
                 .csrf(csrf -> csrf.disable())
 
                 .formLogin(form -> form.disable())
 
                 .httpBasic(httpBasic -> httpBasic.disable())
 
-                // Stateless JWT Auth
                 .sessionManagement(session ->
+
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
 
-                // API Authorization
                 .authorizeHttpRequests(auth -> auth
 
-                        // PUBLIC ENDPOINTS
                         .requestMatchers(
                                 "/api/auth/**"
                         )
-
                         .permitAll()
 
-                        // ADMIN ENDPOINTS
                         .requestMatchers(
-                                "/api/admin/**"
+                                "/api/files/**"
                         )
+                        .permitAll()
 
-                        .hasRole("ADMIN")
-
-                        // EVERYTHING ELSE
                         .anyRequest()
-
-                        .authenticated()
+                        .permitAll()
                 );
 
         return http.build();
@@ -71,13 +61,4 @@ public class SecurityConfig {
 
         return new BCryptPasswordEncoder();
     }
-
-    @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration config
-    ) throws Exception {
-
-        return config.getAuthenticationManager();
-    }
-
 }

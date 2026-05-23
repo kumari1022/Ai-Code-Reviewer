@@ -1,7 +1,6 @@
 package com.aicoderreviewer.backend.config;
 
 import org.springframework.context.annotation.Bean;
-
 import org.springframework.context.annotation.Configuration;
 
 import org.springframework.web.cors.CorsConfiguration;
@@ -19,18 +18,14 @@ public class CorsConfig {
         CorsConfiguration config =
                 new CorsConfiguration();
 
-        // FRONTEND URL
         config.addAllowedOrigin(
                 "http://localhost:5173"
         );
 
-        // ALLOW ALL HEADERS
         config.addAllowedHeader("*");
 
-        // ALLOW ALL METHODS
         config.addAllowedMethod("*");
 
-        // ALLOW CREDENTIALS
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =

@@ -2,14 +2,19 @@ package com.aicoderreviewer.backend.controller;
 
 import com.aicoderreviewer.backend.entity.CodeFile;
 import com.aicoderreviewer.backend.service.FileUploadService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.*;
+
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/files")
 @RequiredArgsConstructor
+@CrossOrigin("*")
 public class FileUploadController {
 
     private final FileUploadService
@@ -17,8 +22,10 @@ public class FileUploadController {
 
     @PostMapping("/upload")
     public ResponseEntity<CodeFile> uploadFile(
+
             @RequestParam("file")
             MultipartFile file
+
     ) {
 
         try {
@@ -30,6 +37,8 @@ public class FileUploadController {
             return ResponseEntity.ok(uploaded);
 
         } catch (Exception e) {
+
+            e.printStackTrace();
 
             return ResponseEntity
                     .badRequest()

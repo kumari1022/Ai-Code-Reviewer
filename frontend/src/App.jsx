@@ -1,33 +1,24 @@
 import {
   BrowserRouter,
   Routes,
-  Route
+  Route,
 } from "react-router-dom";
 
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
+import UploadPage from "./pages/UploadPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
-
   localStorage.setItem("token", "demo");
 
   return (
-
     <BrowserRouter>
-
       <Routes>
+        <Route path="/login" element={<LoginPage />} />
 
-        <Route
-          path="/login"
-          element={<LoginPage />}
-        />
-
-        <Route
-          path="/register"
-          element={<RegisterPage />}
-        />
+        <Route path="/register" element={<RegisterPage />} />
 
         <Route
           path="/dashboard"
@@ -38,8 +29,15 @@ function App() {
           }
         />
 
+        <Route
+          path="/upload"
+          element={
+            <ProtectedRoute>
+              <UploadPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
-
     </BrowserRouter>
   );
 }
