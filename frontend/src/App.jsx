@@ -11,11 +11,10 @@ import UploadPage from "./pages/UploadPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import HistoryPage from "./pages/HistoryPage";
 import DetailedReviewPage from "./pages/DetailedReviewPage";
+import ChatPage from "./pages/ChatPage";
 
 
 function App() {
-  localStorage.setItem("token", "demo");
-
   return (
     <BrowserRouter>
       <Routes>
@@ -46,6 +45,10 @@ function App() {
         <Route
           path="/history"
           element={<HistoryPage />}
+        />
+        <Route
+          path="/chat"
+          element={<ChatPage />}
         />
       </Routes>
     </BrowserRouter>
