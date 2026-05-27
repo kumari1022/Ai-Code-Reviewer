@@ -3,9 +3,13 @@ package com.aicoderreviewer.backend.service;
 import com.aicoderreviewer.backend.ai.AIService;
 import com.aicoderreviewer.backend.entity.CodeFile;
 import com.aicoderreviewer.backend.repository.CodeFileRepository;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -15,25 +19,34 @@ public class FileUploadService {
 
     private final AIService aiService;
 
-    public CodeFile uploadFile(MultipartFile file)
-            throws Exception {
+    public CodeFile uploadFile(
+            MultipartFile file
+    ) throws Exception {
 
-        String code = new String(file.getBytes());
+        String code =
+                new String(file.getBytes());
 
-        String review = aiService.analyzeCode(
-                file.getOriginalFilename(),
-                code
-        );
+        String review =
+                aiService.analyzeCode(
 
-        CodeFile codeFile = new CodeFile();
+                        file.getOriginalFilename(),
+                        code
+                );
+
+        CodeFile codeFile =
+                new CodeFile();
 
         codeFile.setFileName(
                 file.getOriginalFilename()
         );
 
-        codeFile.setCode(code);
+        codeFile.setContent(code);
 
         codeFile.setReview(review);
+
+        codeFile.setCreatedAt(
+                LocalDateTime.now()
+        );
 
         return repository.save(codeFile);
     }

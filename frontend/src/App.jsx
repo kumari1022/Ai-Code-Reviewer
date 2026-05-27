@@ -9,6 +9,9 @@ import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import UploadPage from "./pages/UploadPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import HistoryPage from "./pages/HistoryPage";
+import DetailedReviewPage from "./pages/DetailedReviewPage";
+
 
 function App() {
   localStorage.setItem("token", "demo");
@@ -29,9 +32,9 @@ function App() {
           }
         />
         <Route
-          path="/review"
-          element={<ReviewPage />}
-       />
+          path="/review/:id"
+          element={<DetailedReviewPage />}
+        />
         <Route
           path="/upload"
           element={
@@ -39,6 +42,10 @@ function App() {
               <UploadPage />
             </ProtectedRoute>
           }
+        />
+        <Route
+          path="/history"
+          element={<HistoryPage />}
         />
       </Routes>
     </BrowserRouter>
