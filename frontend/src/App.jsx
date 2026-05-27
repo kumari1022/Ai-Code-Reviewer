@@ -12,7 +12,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import HistoryPage from "./pages/HistoryPage";
 import DetailedReviewPage from "./pages/DetailedReviewPage";
 import ChatPage from "./pages/ChatPage";
-
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
@@ -49,6 +49,10 @@ function App() {
         <Route
           path="/chat"
           element={<ChatPage />}
+        />
+        <Route
+          path="/admin"
+          element={<AdminDashboard />}
         />
       </Routes>
     </BrowserRouter>
