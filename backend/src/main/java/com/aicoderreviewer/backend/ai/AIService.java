@@ -1,13 +1,20 @@
 package com.aicoderreviewer.backend.ai;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.cache.annotation.Cacheable;
 import com.aicoderreviewer.backend.service.LanguageDetectorService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestOperations;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Map;
@@ -18,6 +25,9 @@ public class AIService {
 
     @Value("${groq.api.key}")
     private String apiKey;
+
+    private final RestTemplate restTemplate =
+            new RestTemplate();
 
     @Value("${groq.model}")
     private String model;
@@ -105,6 +115,112 @@ public class AIService {
                     AI analysis temporarily unavailable.
                     Please try again later.
                     """;
+        }
+    }
+    public String chat(
+            String message
+    ) {
+
+        try {
+
+            String prompt =
+
+                    "You are an AI coding assistant. " +
+
+                            "Answer the following developer question:\n\n"
+
+                            + message;
+
+            return callGroqAPI(prompt);
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return "AI Chat Error";
+        }
+    }
+    private String callGroqAPI(
+            String prompt
+    ) {
+
+        try {
+
+            HttpHeaders headers =
+                    new HttpHeaders();
+
+            headers.setContentType(
+                    MediaType.APPLICATION_JSON
+            );
+
+            headers.setBearerAuth(apiKey);
+
+            JSONObject message =
+                    new JSONObject();
+
+            message.put(
+                    "role",
+                    "user"
+            );
+
+            message.put(
+                    "content",
+                    prompt
+            );
+
+            JSONArray messages =
+                    new JSONArray();
+
+            messages.put(message);
+
+            JSONObject body =
+                    new JSONObject();
+
+            body.put(
+                    "model",
+                    "llama-3.3-70b-versatile"
+            );
+
+            body.put(
+                    "messages",
+                    messages
+            );
+
+            HttpEntity<String> entity =
+
+                    new HttpEntity<>(
+
+                            body.toString(),
+                            headers
+                    );
+
+            ResponseEntity<String> response =
+
+                    restTemplate.postForEntity(
+
+                            "https://api.groq.com/openai/v1/chat/completions",
+
+                            entity,
+
+                            String.class
+                    );
+
+            JSONObject json =
+                    new JSONObject(
+                            response.getBody()
+                    );
+
+            return json
+                    .getJSONArray("choices")
+                    .getJSONObject(0)
+                    .getJSONObject("message")
+                    .getString("content");
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return "Groq API Error";
         }
     }
 }

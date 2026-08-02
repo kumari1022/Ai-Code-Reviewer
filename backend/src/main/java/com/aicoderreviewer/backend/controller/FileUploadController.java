@@ -17,11 +17,10 @@ import org.springframework.web.multipart.MultipartFile;
 @CrossOrigin("*")
 public class FileUploadController {
 
-    private final FileUploadService
-            fileUploadService;
+    private final FileUploadService fileUploadService;
 
     @PostMapping("/upload")
-    public ResponseEntity<CodeFile> uploadFile(
+    public ResponseEntity<?> uploadFile(
 
             @RequestParam("file")
             MultipartFile file
@@ -30,9 +29,13 @@ public class FileUploadController {
 
         try {
 
+            System.out.println("UPLOAD STARTED");
+
             CodeFile uploaded =
                     fileUploadService
                             .uploadFile(file);
+
+            System.out.println("UPLOAD SUCCESS");
 
             return ResponseEntity.ok(uploaded);
 
@@ -42,7 +45,7 @@ public class FileUploadController {
 
             return ResponseEntity
                     .badRequest()
-                    .build();
+                    .body(e.getMessage());
         }
     }
 }

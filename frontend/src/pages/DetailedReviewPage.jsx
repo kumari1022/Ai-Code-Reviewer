@@ -1,0 +1,160 @@
+import { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import axios from "axios";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
+import ReactMarkdown from "react-markdown";
+import { ArrowLeft, Terminal, AlertCircle, Sparkles, CheckCircle2 } from "lucide-react";
+import Sidebar from "../components/Sidebar";
+import Navbar from "../components/Navbar";
+
+function DetailedReviewPage() {
+  const { id } = useParams();
+  const [review, setReview] = useState(null);
+
+  useEffect(() => {
+    fetchReview();
+  }, []);
+
+  const fetchReview = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `http://localhost:8080/api/review/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      setReview(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  if (!review) {
+    return (
+      <div className="min-h-screen bg-[#030712] text-slate-100 flex items-center justify-center flex-col gap-3">
+        <span className="w-10 h-10 rounded-full border-2 border-slate-700 border-t-blue-500 animate-spin"></span>
+        <span className="text-lg font-bold text-slate-400">Loading analysis reports...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex bg-[#030712] min-h-screen text-slate-100 overflow-hidden">
+      {/* SIDEBAR */}
+      <Sidebar />
+
+      <div className="flex-1 flex flex-col h-screen overflow-y-auto">
+        {/* NAVBAR */}
+        <Navbar title="Review Diagnostics" />
+
+        {/* WORKSPACE CONTENT */}
+        <div className="p-8 md:p-10 max-w-5xl w-full mx-auto flex flex-col gap-8">
+          
+          {/* TOP BAR / BACK LINK */}
+          <div className="flex items-center justify-between">
+            <Link
+              to="/history"
+              className="inline-flex items-center gap-2 text-xs font-semibold text-slate-450 hover:text-white transition-colors"
+            >
+              <ArrowLeft size={14} />
+              <span>Back to History</span>
+            </Link>
+
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span>Groq AI Checked</span>
+            </div>
+          </div>
+
+          {/* PAGE TITLE */}
+          <div>
+            <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+              <Terminal className="text-blue-500" size={26} />
+              <span>{review.fileName}</span>
+            </h1>
+            <p className="text-slate-500 mt-2 text-sm">
+              Deep code inspection, security audits, and optimization suggestions.
+            </p>
+          </div>
+
+          {/* MOCK IDE CODE CONTAINER */}
+          <div className="bg-[#090d16] border border-slate-900 rounded-3xl overflow-hidden shadow-2xl">
+            {/* Mock Header Controls */}
+            <div className="bg-[#0c1220] px-6 py-4 flex justify-between items-center border-b border-slate-900/60 select-none">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-red-500/80 inline-block"></span>
+                <span className="w-3 h-3 rounded-full bg-yellow-500/80 inline-block"></span>
+                <span className="w-3 h-3 rounded-full bg-green-500/80 inline-block"></span>
+              </div>
+              <div className="px-3 py-1 rounded bg-[#090d16] text-[10px] text-slate-400 font-semibold tracking-wide border border-slate-850">
+                {review.fileName} (Java Component)
+              </div>
+              <div className="w-12 h-3"></div>
+            </div>
+
+            {/* Code Body */}
+            <div className="p-1.5 md:p-3 overflow-x-auto">
+              <SyntaxHighlighter
+                language="java"
+                style={oneDark}
+                showLineNumbers={true}
+                customStyle={{
+                  background: "transparent",
+                  margin: 0,
+                  padding: "16px",
+                  fontSize: "14px",
+                  lineHeight: "1.6",
+                }}
+              >
+                {review.content || "// No code available"}
+              </SyntaxHighlighter>
+            </div>
+          </div>
+
+          {/* AI REVIEW REPORT OUT */}
+          <div className="bg-slate-950/45 backdrop-blur-md border border-slate-900 rounded-3xl p-8 shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/[0.02] rounded-full blur-[60px] pointer-events-none"></div>
+            
+            <div className="flex items-center gap-2.5 mb-6 pb-4 border-b border-slate-900">
+              <Sparkles className="text-purple-400" size={20} />
+              <h2 className="text-lg font-bold text-white tracking-wide">
+                Groq AI Diagnostic Review
+              </h2>
+            </div>
+
+            {/* Markdown Body */}
+            <div className="prose prose-invert prose-sm max-w-none text-slate-350 leading-relaxed space-y-4">
+              <ReactMarkdown 
+                components={{
+                  h1: ({node, ...props}) => <h3 className="text-lg font-bold text-white mt-6 mb-3 first:mt-0" {...props} />,
+                  h2: ({node, ...props}) => <h4 className="text-base font-bold text-white mt-4 mb-2" {...props} />,
+                  h3: ({node, ...props}) => <h5 className="text-sm font-bold text-slate-200 mt-3 mb-1" {...props} />,
+                  p: ({node, ...props}) => <p className="mb-4 text-slate-300 whitespace-pre-wrap leading-relaxed" {...props} />,
+                  ul: ({node, ...props}) => <ul className="list-disc pl-5 mb-4 space-y-2 text-slate-350" {...props} />,
+                  ol: ({node, ...props}) => <ol className="list-decimal pl-5 mb-4 space-y-2 text-slate-350" {...props} />,
+                  li: ({node, ...props}) => <li className="pl-1" {...props} />,
+                  code: ({node, inline, className, children, ...props}) => {
+                    return (
+                      <code className="bg-slate-900 text-blue-400 px-1.5 py-0.5 rounded font-mono text-xs border border-slate-800" {...props}>
+                        {children}
+                      </code>
+                    );
+                  }
+                }}
+              >
+                {review.review || "*No report review generated yet.*"}
+              </ReactMarkdown>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default DetailedReviewPage;

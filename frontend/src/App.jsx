@@ -8,11 +8,16 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import UploadPage from "./pages/UploadPage";
+import DirectReviewPage from "./pages/DirectReviewPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import HistoryPage from "./pages/HistoryPage";
+import DetailedReviewPage from "./pages/DetailedReviewPage";
+import ChatPage from "./pages/ChatPage";
+import AdminDashboard from "./pages/AdminDashboard";
+import LandingPage from "./pages/LandingPage";
+
 
 function App() {
-  localStorage.setItem("token", "demo");
-
   return (
     <BrowserRouter>
       <Routes>
@@ -29,9 +34,9 @@ function App() {
           }
         />
         <Route
-          path="/review"
-          element={<ReviewPage />}
-       />
+          path="/review/:id"
+          element={<DetailedReviewPage />}
+        />
         <Route
           path="/upload"
           element={
@@ -39,6 +44,30 @@ function App() {
               <UploadPage />
             </ProtectedRoute>
           }
+        />
+        <Route
+          path="/direct-review"
+          element={
+            <ProtectedRoute>
+              <DirectReviewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/history"
+          element={<HistoryPage />}
+        />
+        <Route
+          path="/chat"
+          element={<ChatPage />}
+        />
+        <Route
+          path="/admin"
+          element={<AdminDashboard />}
+        />
+        <Route
+          path="/"
+          element={<LandingPage />}
         />
       </Routes>
     </BrowserRouter>
