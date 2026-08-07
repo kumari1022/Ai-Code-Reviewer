@@ -41,7 +41,13 @@ public class AIService {
             .build();
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    @Cacheable(value = "reviews", key = "#code")
+
+    /**
+     * Cached AI review. Key uses file name + content hash so large source
+     * files are not stored as Redis keys. Cache failures are handled by
+     * {@link com.aicoderreviewer.backend.config.RedisConfig} CacheErrorHandler.
+     */
+    @Cacheable(value = "reviews", key = "#fileName + '::' + #code.hashCode()")
     public String analyzeCode(String fileName, String code) {
 
         try {
