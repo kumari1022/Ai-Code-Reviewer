@@ -7,7 +7,7 @@ import ReactMarkdown from "react-markdown";
 import { ArrowLeft, Terminal, AlertCircle, Sparkles, CheckCircle2 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 function DetailedReviewPage() {
   const { id } = useParams();

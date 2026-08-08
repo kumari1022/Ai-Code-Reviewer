@@ -10,7 +10,7 @@ import {
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 function AdminDashboard() {
   const [stats, setStats] = useState({

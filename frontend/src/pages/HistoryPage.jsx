@@ -6,7 +6,7 @@ import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import HistoryCard from "../components/HistoryCard";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 function HistoryPage() {
   const [reviews, setReviews] = useState([]);
