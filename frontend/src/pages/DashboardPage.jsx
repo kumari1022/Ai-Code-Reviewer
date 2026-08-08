@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+
 import {
   Upload,
   FileCode,
@@ -21,6 +22,7 @@ import {
 } from "recharts";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function DashboardPage() {
   const [reviewsList, setReviewsList] = useState([]);
@@ -34,8 +36,8 @@ function DashboardPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "http://localhost:8080/api/review/all",
-        {
+  `${API_URL}/api/review/all`,
+  {
           headers: {
             Authorization: `Bearer ${token}`
           }

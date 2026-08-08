@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+const API_URL = import.meta.env.VITE_API_URL;
 
 // Built-in high-quality Java templates to demonstrate the reviewer
 const JAVA_TEMPLATES = [
@@ -199,7 +200,7 @@ function DirectReviewPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:8080/api/ide/review",
+        `${API_URL}/api/ide/review`,
         {
           fileName,
           code
@@ -220,7 +221,7 @@ function DirectReviewPage() {
       }
     } catch (error) {
       console.error(error);
-      setReview("### Analysis Failure\nFailed to obtain a diagnostics report. Please ensure the backend server is running and accessible at `http://localhost:8080`.");
+      setReview("### Analysis Failure\nFailed to obtain a diagnostics report. Please ensure the backend service is running and accessible.");
     } finally {
       setLoading(false);
     }

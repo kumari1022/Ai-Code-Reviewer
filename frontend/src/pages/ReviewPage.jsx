@@ -11,6 +11,8 @@ import MetricCard from "../components/MetricCard";
 
 import IssueCard from "../components/IssueCard";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function ReviewPage() {
 
   const [review, setReview] = useState("");
@@ -30,7 +32,7 @@ function ReviewPage() {
     try {
 
       const response = await axios.get(
-        "http://localhost:8081/api/review/latest"
+        `${API_URL}/api/review/latest`
       );
 
       setReview(response.data.review);

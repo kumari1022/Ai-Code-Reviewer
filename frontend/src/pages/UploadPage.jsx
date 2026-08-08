@@ -4,6 +4,8 @@ import { UploadCloud, FileCode, CheckCircle, AlertCircle, X } from "lucide-react
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function UploadPage() {
   const [file, setFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
@@ -53,7 +55,7 @@ function UploadPage() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:8080/api/files/upload",
+        `${API_URL}/api/files/upload`,
         formData,
         {
           headers: {

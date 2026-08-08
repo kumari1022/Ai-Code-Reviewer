@@ -6,6 +6,8 @@ import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import HistoryCard from "../components/HistoryCard";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function HistoryPage() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +20,7 @@ function HistoryPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "http://localhost:8080/api/review/all",
+        `${API_URL}/api/review/all`,
         {
           headers: {
             Authorization: `Bearer ${token}`

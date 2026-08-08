@@ -5,6 +5,7 @@ import { ClipLoader } from "react-spinners";
 import { Send, Sparkles, Terminal, ArrowRight, User } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function ChatPage() {
   const [message, setMessage] = useState("");
@@ -34,8 +35,8 @@ function ChatPage() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post(
-        "http://localhost:8080/api/chat",
+        const response = await axios.post(
+         `${API_URL}/api/chat`,
         {
           message: message
         },

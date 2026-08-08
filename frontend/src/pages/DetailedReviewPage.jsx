@@ -7,6 +7,7 @@ import ReactMarkdown from "react-markdown";
 import { ArrowLeft, Terminal, AlertCircle, Sparkles, CheckCircle2 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function DetailedReviewPage() {
   const { id } = useParams();
@@ -20,8 +21,8 @@ function DetailedReviewPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:8080/api/review/${id}`,
-        {
+  `${API_URL}/api/review/${id}`,
+  {
           headers: {
             Authorization: `Bearer ${token}`
           }

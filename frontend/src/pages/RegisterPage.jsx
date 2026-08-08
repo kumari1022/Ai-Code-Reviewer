@@ -3,6 +3,8 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Code2, User, ArrowRight } from "lucide-react";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function RegisterPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -17,7 +19,7 @@ function RegisterPage() {
     }
     try {
       await axios.post(
-        "http://localhost:8080/api/auth/register",
+        `${API_URL}/api/auth/register`,
         {
           email,
           password
