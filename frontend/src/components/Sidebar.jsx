@@ -7,7 +7,8 @@ import {
   ShieldAlert, 
   LogOut, 
   Code2,
-  Terminal
+  Terminal,
+  FolderCode
 } from "lucide-react";
 
 function Sidebar() {
@@ -29,6 +30,7 @@ function Sidebar() {
     { path: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
     { path: "/upload", label: "File Audit", icon: <Upload size={18} /> },
     { path: "/direct-review", label: "Live Sandbox", icon: <Terminal size={18} /> },
+    { path: "/saved-codes", label: "Code Repository", icon: <FolderCode size={18} /> },
     { path: "/history", label: "Audit History", icon: <History size={18} /> },
     { path: "/chat", label: "Coding Assistant", icon: <MessageSquare size={18} /> },
   ];

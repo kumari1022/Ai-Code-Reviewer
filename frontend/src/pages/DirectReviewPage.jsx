@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { 
   Terminal as TerminalIcon, 
   Sparkles, 
@@ -17,7 +17,9 @@ import {
   Code2,
   Terminal,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Save,
+  BookmarkCheck
 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
@@ -93,12 +95,16 @@ const LOADING_PHASES = [
 
 function DirectReviewPage() {
   const navigate = useNavigate();
-  const [code, setCode] = useState(CODE_TEMPLATES[0].code);
-  const [fileName, setFileName] = useState(CODE_TEMPLATES[0].fileName);
+  const location = useLocation();
+
+  const [code, setCode] = useState(location.state?.code || CODE_TEMPLATES[0].code);
+  const [fileName, setFileName] = useState(location.state?.fileName || CODE_TEMPLATES[0].fileName);
   const [fontSize, setFontSize] = useState(14);
   const [review, setReview] = useState("");
   const [loading, setLoading] = useState(false);
   const [runningCode, setRunningCode] = useState(false);
+  const [savingFile, setSavingFile] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
   const [activeRightTab, setActiveRightTab] = useState("output"); // "output" or "review"
   
   // Real Code Execution Result State
@@ -136,6 +142,31 @@ function DirectReviewPage() {
       navigate("/login");
     }
   }, [navigate]);
+
+  const handleSaveFile = async () => {
+    if (!code.trim()) {
+      alert("Cannot save an empty code file.");
+      return;
+    }
+    setSavingFile(true);
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(`${API_URL}/api/codes`, {
+        title: fileName,
+        fileName: fileName,
+        code: code
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 2000);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save file to Code Repository.");
+    } finally {
+      setSavingFile(false);
+    }
+  };
 
   // Synchronize Line Numbers & Highlight Overlay scroll with Textarea scroll
   const handleScroll = () => {
@@ -531,6 +562,26 @@ function DirectReviewPage() {
 
                   {/* Font Zoom Controls & Action Buttons */}
                   <div className="flex items-center gap-1">
+                    {/* SAVE FILE BUTTON IN HEADER */}
+                    <button
+                      onClick={handleSaveFile}
+                      disabled={savingFile || !code.trim()}
+                      title="Save code to Repository"
+                      className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1 transition-all mr-1 shadow-sm"
+                    >
+                      {savedSuccess ? (
+                        <>
+                          <BookmarkCheck size={12} className="text-emerald-300" />
+                          <span>Saved!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save size={12} />
+                          <span>Save</span>
+                        </>
+                      )}
+                    </button>
+
                     {/* RUN CODE BUTTON IN HEADER */}
                     <button
                       onClick={runCode}

@@ -15,7 +15,7 @@ import DetailedReviewPage from "./pages/DetailedReviewPage";
 import ChatPage from "./pages/ChatPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import LandingPage from "./pages/LandingPage";
-
+import SavedCodesPage from "./pages/SavedCodesPage";
 
 function App() {
   return (
@@ -54,6 +54,14 @@ function App() {
           }
         />
         <Route
+          path="/saved-codes"
+          element={
+            <ProtectedRoute>
+              <SavedCodesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/history"
           element={<HistoryPage />}
         />
@@ -63,12 +71,14 @@ function App() {
         />
         <Route
           path="/admin"
-          element={<AdminDashboard />}
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
         />
-        <Route
-          path="/"
-          element={<LandingPage />}
-        />
+
+        <Route path="/" element={<LandingPage />} />
       </Routes>
     </BrowserRouter>
   );
