@@ -151,18 +151,18 @@ function DirectReviewPage() {
     setSavingFile(true);
     try {
       const token = localStorage.getItem("token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
       await axios.post(`${API_URL}/api/codes`, {
         title: fileName,
         fileName: fileName,
         code: code
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      }, { headers });
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 2000);
     } catch (err) {
-      console.error(err);
-      alert("Failed to save file to Code Repository.");
+      console.error("Save error details:", err.response?.data || err.message);
+      const msg = typeof err.response?.data === 'string' ? err.response.data : (err.response?.data?.message || err.message || "Server unreachable");
+      alert(`Failed to save file to Code Repository: ${msg}`);
     } finally {
       setSavingFile(false);
     }

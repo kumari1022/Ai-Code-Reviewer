@@ -41,23 +41,14 @@ function SavedCodesPage() {
 
   const fetchSavedCodes = async () => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
     try {
       setLoading(true);
-      const res = await axios.get(`${API_URL}/api/codes`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await axios.get(`${API_URL}/api/codes`, { headers });
       setSavedCodes(res.data || []);
     } catch (err) {
       console.error(err);
-      if (err.response?.status === 401) {
-        localStorage.removeItem("token");
-        navigate("/login");
-      }
     } finally {
       setLoading(false);
     }
@@ -67,10 +58,9 @@ function SavedCodesPage() {
     if (!window.confirm("Are you sure you want to delete this saved code file?")) return;
 
     const token = localStorage.getItem("token");
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
     try {
-      await axios.delete(`${API_URL}/api/codes/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axios.delete(`${API_URL}/api/codes/${id}`, { headers });
       setSavedCodes(prev => prev.filter(c => c.id !== id));
     } catch (err) {
       console.error(err);
