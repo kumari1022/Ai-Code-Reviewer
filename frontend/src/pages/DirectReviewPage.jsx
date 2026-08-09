@@ -15,9 +15,9 @@ import {
   ZoomIn,
   ZoomOut,
   Code2,
-  SquareTerminal,
-  CornerDownLeft,
-  RefreshCw
+  Terminal,
+  CheckCircle2,
+  XCircle
 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
@@ -99,26 +99,20 @@ function DirectReviewPage() {
   const [review, setReview] = useState("");
   const [loading, setLoading] = useState(false);
   const [runningCode, setRunningCode] = useState(false);
-  const [activeRightTab, setActiveRightTab] = useState("terminal"); // "terminal" or "review"
+  const [activeRightTab, setActiveRightTab] = useState("output"); // "output" or "review"
   
-  // Interactive Terminal State
-  const [terminalLogs, setTerminalLogs] = useState([
-    { type: "sys", text: "Linux 6.1.0-server x86_64 | Interactive Shell Terminal v2.4" },
-    { type: "sys", text: "Type 'help' for available CLI commands or 'run' to execute code." },
-    { type: "sys", text: "--------------------------------------------------------" }
-  ]);
-  const [terminalInput, setTerminalInput] = useState("");
+  // Real Code Execution Result State
+  const [executionResult, setExecutionResult] = useState(null);
 
   const [copiedReview, setCopiedReview] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
-  const [copiedTerminal, setCopiedTerminal] = useState(false);
+  const [copiedOutput, setCopiedOutput] = useState(false);
   const [loadingPhaseIndex, setLoadingPhaseIndex] = useState(0);
   const [cursorPos, setCursorPos] = useState({ line: 1, col: 1 });
 
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
   const lineNumbersRef = useRef(null);
-  const terminalEndRef = useRef(null);
 
   // Validate JWT session token on mount
   useEffect(() => {
@@ -141,13 +135,6 @@ function DirectReviewPage() {
       navigate("/login");
     }
   }, [navigate]);
-
-  // Auto scroll terminal to bottom when logs update
-  useEffect(() => {
-    if (terminalEndRef.current) {
-      terminalEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [terminalLogs]);
 
   // Synchronize Line Numbers scroll with Textarea scroll
   const handleScroll = () => {
@@ -280,19 +267,15 @@ function DirectReviewPage() {
     setCode("");
     setFileName("Main.java");
     setReview("");
+    setExecutionResult(null);
   };
 
-  const handleClearTerminal = () => {
-    setTerminalLogs([
-      { type: "sys", text: "Terminal cleared." }
-    ]);
-  };
-
-  const handleCopyTerminal = () => {
-    const text = terminalLogs.map(l => l.text).join("\n");
+  const handleCopyOutput = () => {
+    if (!executionResult) return;
+    const text = executionResult.stdout || executionResult.stderr || "";
     navigator.clipboard.writeText(text);
-    setCopiedTerminal(true);
-    setTimeout(() => setCopiedTerminal(false), 2000);
+    setCopiedOutput(true);
+    setTimeout(() => setCopiedOutput(false), 2000);
   };
 
   const handleCopyReview = () => {
@@ -316,13 +299,9 @@ function DirectReviewPage() {
       return;
     }
 
-    setActiveRightTab("terminal");
+    setActiveRightTab("output");
     setRunningCode(true);
-    setTerminalLogs(prev => [
-      ...prev,
-      { type: "cmd", text: `$ run ${fileName}` },
-      { type: "sys", text: `[SERVER] Compiling and executing ${fileName} via ProcessBuilder...` }
-    ]);
+    setExecutionResult(null);
 
     try {
       const response = await axios.post(`${API_URL}/api/execute`, {
@@ -330,108 +309,18 @@ function DirectReviewPage() {
         code
       });
 
-      const { stdout, stderr, exitCode, executionTimeMs } = response.data;
-      const newEntries = [];
-
-      if (stdout && stdout.trim()) {
-        stdout.trim().split(/\r?\n/).forEach((l) => newEntries.push({ type: "out", text: l }));
-      }
-      if (stderr && stderr.trim()) {
-        stderr.trim().split(/\r?\n/).forEach((l) => newEntries.push({ type: "err", text: `⚠️ ${l}` }));
-      }
-      if ((!stdout || !stdout.trim()) && (!stderr || !stderr.trim())) {
-        newEntries.push({ type: "sys", text: "[Program executed successfully with no stdout output]" });
-      }
-
-      newEntries.push({ type: "status", text: `[Process finished with exit code ${exitCode} in ${executionTimeMs}ms]` });
-      
-      setTerminalLogs(prev => [...prev, ...newEntries]);
+      setExecutionResult(response.data);
     } catch (error) {
       console.error(error);
-      setTerminalLogs(prev => [
-        ...prev,
-        { type: "err", text: `⚠️ Server Error: ${error.response?.data || error.message || "Backend server unreachable"}` },
-        { type: "err", text: "[Process terminated abnormally]" }
-      ]);
+      setExecutionResult({
+        stdout: "",
+        stderr: `Server Execution Error: ${error.response?.data || error.message || "Backend server unreachable"}`,
+        exitCode: 1,
+        executionTimeMs: 0
+      });
     } finally {
       setRunningCode(false);
     }
-  };
-
-  // INTERACTIVE TERMINAL COMMAND HANDLER
-  const handleTerminalSubmit = (e) => {
-    e.preventDefault();
-    const cmd = terminalInput.trim();
-    if (!cmd) return;
-
-    setTerminalInput("");
-    const lowerCmd = cmd.toLowerCase();
-
-    if (lowerCmd === "clear" || lowerCmd === "cls") {
-      handleClearTerminal();
-      return;
-    }
-
-    setTerminalLogs(prev => [...prev, { type: "cmd", text: `$ ${cmd}` }]);
-
-    if (lowerCmd === "run" || lowerCmd === "execute" || lowerCmd === "start") {
-      runCode();
-      return;
-    }
-
-    if (lowerCmd === "help") {
-      setTerminalLogs(prev => [
-        ...prev,
-        { type: "sys", text: "Available Terminal Commands:" },
-        { type: "sys", text: "  run       - Execute source code in editor on backend server" },
-        { type: "sys", text: "  clear     - Clear terminal log screen" },
-        { type: "sys", text: "  ls        - List active workspace files" },
-        { type: "sys", text: "  whoami    - Print current session user" },
-        { type: "sys", text: "  date      - Print server system date/time" },
-        { type: "sys", text: "  env       - Show server runtime environments (Java, Python, Node, C++)" }
-      ]);
-      return;
-    }
-
-    if (lowerCmd === "ls" || lowerCmd === "dir") {
-      setTerminalLogs(prev => [
-        ...prev,
-        { type: "out", text: `Mode                LastWriteTime         Length Name` },
-        { type: "out", text: `----                -------------         ------ ----` },
-        { type: "out", text: `-a---         2026-08-09 12:44           1024 ${fileName}` }
-      ]);
-      return;
-    }
-
-    if (lowerCmd === "whoami") {
-      setTerminalLogs(prev => [
-        ...prev,
-        { type: "out", text: "developer@ai-code-reviewer-server" }
-      ]);
-      return;
-    }
-
-    if (lowerCmd === "date") {
-      setTerminalLogs(prev => [
-        ...prev,
-        { type: "out", text: new Date().toString() }
-      ]);
-      return;
-    }
-
-    if (lowerCmd === "env") {
-      setTerminalLogs(prev => [
-        ...prev,
-        { type: "out", text: "Java JDK: OpenJDK 21 (build 21.0.2)" },
-        { type: "out", text: "Python: 3.11.8" },
-        { type: "out", text: "Node.js: v20.11.0" },
-        { type: "out", text: "GCC/C++: 13.2.0" }
-      ]);
-      return;
-    }
-
-    // Default fallback: Trigger server execution
-    runCode();
   };
 
   const triggerReview = async () => {
@@ -493,7 +382,7 @@ function DirectReviewPage() {
             <div>
               <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
                 <TerminalIcon className="text-blue-500" size={20} />
-                <span>VS Code Interactive Web Terminal Studio</span>
+                <span>VS Code Live Sandbox</span>
               </h1>
             </div>
 
@@ -672,7 +561,7 @@ function DirectReviewPage() {
                   {runningCode ? (
                     <>
                       <span className="w-3.5 h-3.5 rounded-full border-2 border-slate-600 border-t-white animate-spin"></span>
-                      <span>Running Program...</span>
+                      <span>Running Code...</span>
                     </>
                   ) : (
                     <>
@@ -706,25 +595,25 @@ function DirectReviewPage() {
               </div>
             </div>
 
-            {/* RIGHT PANEL - REAL INTERACTIVE TERMINAL & AI DIAGNOSTIC REPORT */}
+            {/* RIGHT PANEL - CLEAN OUTPUT & AI DIAGNOSTIC REPORT */}
             <div className="lg:col-span-6 flex flex-col h-full min-h-0">
               <div className="bg-slate-950/60 border border-slate-900 rounded-2xl p-5 shadow-xl flex-1 flex flex-col min-h-0 relative overflow-hidden">
                 
-                {/* TAB SELECTION HEADER & TERMINAL ACTIONS */}
+                {/* TAB SELECTION HEADER */}
                 <div className="flex justify-between items-center pb-3 border-b border-slate-900 mb-3 shrink-0">
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => setActiveRightTab("terminal")}
+                      onClick={() => setActiveRightTab("output")}
                       className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                        activeRightTab === "terminal"
+                        activeRightTab === "output"
                           ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
                           : "text-slate-400 hover:text-white"
                       }`}
                     >
-                      <SquareTerminal size={14} />
-                      <span>Interactive Terminal</span>
-                      {runningCode && (
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                      <Terminal size={14} />
+                      <span>Program Output</span>
+                      {executionResult && executionResult.exitCode === 0 && (
+                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
                       )}
                     </button>
 
@@ -741,25 +630,16 @@ function DirectReviewPage() {
                     </button>
                   </div>
 
-                  {activeRightTab === "terminal" ? (
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={handleCopyTerminal}
-                        title="Copy Terminal Logs"
-                        className="px-2 py-1 rounded-md bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-400 hover:text-white transition-all flex items-center gap-1"
-                      >
-                        {copiedTerminal ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                        <span>{copiedTerminal ? "Copied" : "Copy"}</span>
-                      </button>
-                      <button
-                        onClick={handleClearTerminal}
-                        title="Clear Terminal"
-                        className="p-1 rounded-md bg-slate-900 border border-slate-800 text-slate-400 hover:text-rose-400 transition-all"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  ) : review ? (
+                  {activeRightTab === "output" && executionResult ? (
+                    <button
+                      onClick={handleCopyOutput}
+                      title="Copy Output"
+                      className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px] font-medium text-slate-300 hover:text-white transition-all flex items-center gap-1"
+                    >
+                      {copiedOutput ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                      <span>{copiedOutput ? "Copied" : "Copy Output"}</span>
+                    </button>
+                  ) : activeRightTab === "review" && review ? (
                     <button
                       onClick={handleCopyReview}
                       className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px] font-medium text-slate-300 hover:text-white transition-all"
@@ -770,58 +650,63 @@ function DirectReviewPage() {
                   ) : null}
                 </div>
 
-                {/* TAB CONTENT: INTERACTIVE REAL TERMINAL OR AI AUDIT REPORT */}
+                {/* TAB CONTENT: CLEAN OUTPUT OR AI AUDIT REPORT */}
                 <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
-                  {activeRightTab === "terminal" ? (
-                    /* REAL INTERACTIVE WEB TERMINAL COMPONENT */
-                    <div className="flex-1 bg-[#02050b] border border-slate-900 rounded-xl p-4 font-mono text-xs text-slate-200 overflow-y-auto flex flex-col justify-between shadow-inner select-text">
-                      <div className="space-y-1 overflow-y-auto flex-1 pr-1">
-                        {terminalLogs.map((log, idx) => (
-                          <div 
-                            key={idx} 
-                            className={`whitespace-pre-wrap break-all ${
-                              log.type === "cmd"
-                                ? "text-cyan-400 font-bold"
-                                : log.type === "sys"
-                                ? "text-slate-500 font-medium"
-                                : log.type === "err"
-                                ? "text-rose-400 font-medium"
-                                : log.type === "status"
-                                ? "text-emerald-400 font-semibold mt-2 pt-1 border-t border-slate-900"
-                                : "text-slate-200 font-medium pl-1"
-                            }`}
-                          >
-                            {log.text}
-                          </div>
-                        ))}
-                        {runningCode && (
-                          <div className="flex items-center gap-2 text-amber-400 font-mono py-1 animate-pulse">
-                            <RefreshCw size={12} className="animate-spin text-amber-400" />
-                            <span>[SERVER PROCESS ACTIVE] Running {fileName}...</span>
-                          </div>
-                        )}
-                        <div ref={terminalEndRef} />
+                  {activeRightTab === "output" ? (
+                    /* CLEAN PROGRAM OUTPUT COMPONENT */
+                    runningCode ? (
+                      <div className="h-full flex flex-col justify-center items-center text-center p-6">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-600/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3 animate-spin">
+                          <Play size={18} fill="currentColor" />
+                        </div>
+                        <h3 className="text-xs font-semibold text-white">
+                          Executing {fileName} on Server...
+                        </h3>
                       </div>
+                    ) : executionResult ? (
+                      <div className="flex-1 flex flex-col gap-3 min-h-0">
+                        {/* Status Bar */}
+                        <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-900/90 border border-slate-850 text-xs font-mono shrink-0">
+                          <div className="flex items-center gap-2">
+                            {executionResult.exitCode === 0 ? (
+                              <div className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+                                <CheckCircle2 size={14} />
+                                <span>Exit Code 0 (Success)</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1.5 text-rose-400 font-semibold">
+                                <XCircle size={14} />
+                                <span>Exit Code {executionResult.exitCode}</span>
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-slate-400">{executionResult.executionTimeMs}ms</span>
+                        </div>
 
-                      {/* INTERACTIVE TERMINAL COMMAND PROMPT */}
-                      <form onSubmit={handleTerminalSubmit} className="mt-3 pt-2 border-t border-slate-900 flex items-center gap-2 shrink-0">
-                        <span className="text-emerald-400 font-bold select-none">$</span>
-                        <input
-                          type="text"
-                          value={terminalInput}
-                          onChange={(e) => setTerminalInput(e.target.value)}
-                          placeholder="Type 'run', 'clear', 'ls', 'whoami', or 'help'..."
-                          className="flex-1 bg-transparent text-emerald-300 font-mono text-xs outline-none border-none placeholder:text-slate-700 caret-emerald-400"
-                          spellCheck="false"
-                        />
-                        <button
-                          type="submit"
-                          className="p-1 rounded bg-slate-900 text-slate-400 hover:text-emerald-400 transition-colors"
-                        >
-                          <CornerDownLeft size={12} />
-                        </button>
-                      </form>
-                    </div>
+                        {/* Clean Output Box */}
+                        <div className="flex-1 bg-[#04070d] border border-slate-850 rounded-xl p-4 font-mono text-sm text-slate-100 overflow-y-auto whitespace-pre-wrap break-all select-text">
+                          {executionResult.stdout && executionResult.stdout.trim() ? (
+                            <div className="text-slate-100">{executionResult.stdout.trim()}</div>
+                          ) : null}
+
+                          {executionResult.stderr && executionResult.stderr.trim() ? (
+                            <div className="text-rose-400 font-medium mt-2">{executionResult.stderr.trim()}</div>
+                          ) : null}
+
+                          {!executionResult.stdout?.trim() && !executionResult.stderr?.trim() && (
+                            <div className="text-slate-500 italic">[Program finished with no output]</div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-full flex flex-col justify-center items-center text-center p-6 text-slate-500">
+                        <Terminal size={24} className="text-slate-600 mb-3" />
+                        <p className="font-semibold text-slate-300 text-xs">Program Output Window</p>
+                        <p className="text-[11px] mt-1.5 max-w-xs leading-relaxed text-slate-500">
+                          Click <strong className="text-emerald-400">▶ Run Code</strong> or press <code className="text-emerald-400 font-mono">Ctrl+Enter</code> to execute the code and see the clean output here.
+                        </p>
+                      </div>
+                    )
                   ) : (
                     /* AI AUDIT REPORT TAB */
                     loading ? (
