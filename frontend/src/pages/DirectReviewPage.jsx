@@ -218,6 +218,56 @@ function DirectReviewPage() {
       return;
     }
 
+    // 5. Smart Enter Key Auto-Indentation & Brace Alignment ({}, [], ())
+    if (e.key === "Enter" && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+      e.preventDefault();
+      const start = e.target.selectionStart;
+      const end = e.target.selectionEnd;
+
+      const lineStart = code.lastIndexOf("\n", start - 1) + 1;
+      const currentLineBeforeCursor = code.substring(lineStart, start);
+      const indentMatch = currentLineBeforeCursor.match(/^\s*/);
+      const currentIndent = indentMatch ? indentMatch[0] : "";
+
+      const charBefore = code.charAt(start - 1);
+      const charAfter = code.charAt(start);
+
+      const isBetweenBraces = 
+        (charBefore === "{" && charAfter === "}") ||
+        (charBefore === "[" && charAfter === "]") ||
+        (charBefore === "(" && charAfter === ")");
+
+      if (isBetweenBraces) {
+        // Expand middle line with +4 spaces and place closing brace on new line
+        const insertText = "\n" + currentIndent + "    \n" + currentIndent;
+        const newCode = code.substring(0, start) + insertText + code.substring(end);
+        setCode(newCode);
+
+        const newCursorPos = start + 1 + currentIndent.length + 4;
+        setTimeout(() => {
+          if (textareaRef.current) {
+            textareaRef.current.selectionStart = textareaRef.current.selectionEnd = newCursorPos;
+          }
+        }, 0);
+        return;
+      }
+
+      const isOpenBrace = charBefore === "{" || charBefore === "[" || charBefore === "(";
+      const extraIndent = isOpenBrace ? "    " : "";
+      const insertText = "\n" + currentIndent + extraIndent;
+      const newCode = code.substring(0, start) + insertText + code.substring(end);
+      setCode(newCode);
+
+      const newCursorPos = start + insertText.length;
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.selectionStart = textareaRef.current.selectionEnd = newCursorPos;
+        }
+      }, 0);
+      return;
+    }
+
+    // 6. Auto-closing pairs: ( { [ " '
     const pairs = { '(': ')', '{': '}', '[': ']', '"': '"', "'": "'" };
     if (pairs[e.key] && e.target.selectionStart === e.target.selectionEnd) {
       e.preventDefault();
