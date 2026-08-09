@@ -113,6 +113,7 @@ function DirectReviewPage() {
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
   const lineNumbersRef = useRef(null);
+  const highlightPreRef = useRef(null);
 
   // Validate JWT session token on mount
   useEffect(() => {
@@ -136,10 +137,16 @@ function DirectReviewPage() {
     }
   }, [navigate]);
 
-  // Synchronize Line Numbers scroll with Textarea scroll
+  // Synchronize Line Numbers & Highlight Overlay scroll with Textarea scroll
   const handleScroll = () => {
-    if (textareaRef.current && lineNumbersRef.current) {
-      lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
+    if (textareaRef.current) {
+      if (lineNumbersRef.current) {
+        lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
+      }
+      if (highlightPreRef.current) {
+        highlightPreRef.current.scrollTop = textareaRef.current.scrollTop;
+        highlightPreRef.current.scrollLeft = textareaRef.current.scrollLeft;
+      }
     }
   };
 
@@ -218,7 +225,7 @@ function DirectReviewPage() {
       return;
     }
 
-    // 5. Smart Enter Key Auto-Indentation & Brace Alignment ({}, [], ())
+    // Smart Enter Key Auto-Indentation & Brace Alignment ({}, [], ())
     if (e.key === "Enter" && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
       e.preventDefault();
       const start = e.target.selectionStart;
@@ -238,7 +245,6 @@ function DirectReviewPage() {
         (charBefore === "(" && charAfter === ")");
 
       if (isBetweenBraces) {
-        // Expand middle line with +4 spaces and place closing brace on new line
         const insertText = "\n" + currentIndent + "    \n" + currentIndent;
         const newCode = code.substring(0, start) + insertText + code.substring(end);
         setCode(newCode);
@@ -267,7 +273,6 @@ function DirectReviewPage() {
       return;
     }
 
-    // 6. Auto-closing pairs: ( { [ " '
     const pairs = { '(': ')', '{': '}', '[': ']', '"': '"', "'": "'" };
     if (pairs[e.key] && e.target.selectionStart === e.target.selectionEnd) {
       e.preventDefault();
@@ -412,6 +417,46 @@ function DirectReviewPage() {
     }
   };
 
+  // REAL-TIME SYNTAX HIGHLIGHTING TOKENIZER
+  const highlightSyntax = (text) => {
+    if (!text) return "";
+    let html = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+
+    // Tokenize comments
+    html = html.replace(/(\/\/[^\n]*|\#[^\n]*)/g, '___COMMENT___$1___END___');
+
+    // Tokenize double-quoted and single-quoted strings
+    html = html.replace(/("[^"\\]*(?:\\.[^"\\]*)*"|'[^'\\]*(?:\\.[^'\\]*)*'|`[^`\\]*(?:\\.[^`\\]*)*`)/g, '___STRING___$1___END___');
+
+    // Tokenize numbers
+    html = html.replace(/\b(\d+\.?\d*)\b/g, '___NUMBER___$1___END___');
+
+    // Tokenize keywords
+    const keywords = /\b(public|class|static|void|def|import|from|function|return|if|else|const|let|var|int|double|float|char|boolean|include|package|struct|fn|use|impl|mod|type|export|module|try|catch|finally|throw|new|nil|None|True|False|true|false|null|undefined)\b/g;
+    html = html.replace(keywords, '___KEYWORD___$1___END___');
+
+    // Tokenize types & system classes
+    const types = /\b(System|String|BigDecimal|Logger|Objects|Console|Math|Boolean|Number|Array|Object|Promise|std|cout|endl)\b/g;
+    html = html.replace(types, '___TYPE___$1___END___');
+
+    // Tokenize function calls
+    html = html.replace(/\b([a-zA-Z_]\w*)\s*\(/g, '___FUNC___$1___END___(');
+
+    // Map token markers to VS Code theme CSS colors
+    html = html
+      .replace(/___COMMENT___(.*?)___END___/g, '<span style="color: #6a9955; font-style: italic;">$1</span>')
+      .replace(/___STRING___(.*?)___END___/g, '<span style="color: #ce9178;">$1</span>')
+      .replace(/___NUMBER___(.*?)___END___/g, '<span style="color: #b5cea8;">$1</span>')
+      .replace(/___KEYWORD___(.*?)___END___/g, '<span style="color: #569cd6; font-weight: 600;">$1</span>')
+      .replace(/___TYPE___(.*?)___END___/g, '<span style="color: #4ec9b0; font-weight: 600;">$1</span>')
+      .replace(/___FUNC___(.*?)___END___/g, '<span style="color: #dcdcaa;">$1</span>');
+
+    return html;
+  };
+
   const lines = code.split("\n");
   const lineCount = Math.max(lines.length, 1);
   const lineNumbers = Array.from({ length: lineCount }, (_, i) => i + 1);
@@ -432,7 +477,7 @@ function DirectReviewPage() {
             <div>
               <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
                 <TerminalIcon className="text-blue-500" size={20} />
-                <span>VS Code Live Sandbox</span>
+                <span>VS Code Syntax Highlighted Editor Studio</span>
               </h1>
             </div>
 
@@ -550,7 +595,7 @@ function DirectReviewPage() {
                   </div>
                 </div>
 
-                {/* FULL SCREEN STRETCH VS CODE TEXTAREA */}
+                {/* FULL SCREEN STRETCH SYNTAX-HIGHLIGHTED VS CODE EDITOR */}
                 <div className="flex-1 bg-[#060a12] relative overflow-hidden flex min-h-0">
                   {/* Synced VS Code Line Numbers */}
                   <div 
@@ -563,24 +608,40 @@ function DirectReviewPage() {
                     ))}
                   </div>
 
-                  {/* High-Legibility VS Code Textarea */}
-                  <textarea
-                    ref={textareaRef}
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    onScroll={handleScroll}
-                    onClick={updateCursorPosition}
-                    onKeyUp={updateCursorPosition}
-                    placeholder="// Write or paste source code here..."
-                    style={{ 
-                      fontSize: `${fontSize}px`, 
-                      lineHeight: `${lineHeightPx}px`,
-                      tabSize: 4
-                    }}
-                    className="flex-1 h-full bg-[#060a12] text-blue-100 placeholder:text-slate-650 caret-blue-400 outline-none resize-none p-3.5 font-mono selection:bg-blue-500/30 overflow-y-auto"
-                    spellCheck="false"
-                  />
+                  {/* SYNTAX HIGHLIGHTED CODE CONTAINER */}
+                  <div className="flex-1 h-full relative overflow-hidden">
+                    {/* Highlighted Color Overlay Layer */}
+                    <pre
+                      ref={highlightPreRef}
+                      aria-hidden="true"
+                      style={{ 
+                        fontSize: `${fontSize}px`, 
+                        lineHeight: `${lineHeightPx}px`,
+                        tabSize: 4
+                      }}
+                      className="absolute inset-0 p-3.5 font-mono pointer-events-none overflow-hidden whitespace-pre-wrap break-all text-slate-200 select-none z-0 m-0 border-0 bg-transparent"
+                      dangerouslySetInnerHTML={{ __html: highlightSyntax(code) + "<br/>" }}
+                    />
+
+                    {/* Interactive Textarea */}
+                    <textarea
+                      ref={textareaRef}
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      onScroll={handleScroll}
+                      onClick={updateCursorPosition}
+                      onKeyUp={updateCursorPosition}
+                      placeholder="// Write or paste source code here..."
+                      style={{ 
+                        fontSize: `${fontSize}px`, 
+                        lineHeight: `${lineHeightPx}px`,
+                        tabSize: 4
+                      }}
+                      className="absolute inset-0 w-full h-full bg-transparent text-transparent caret-blue-400 outline-none resize-none p-3.5 font-mono selection:bg-blue-500/30 overflow-y-auto z-10 border-0 shadow-none focus:ring-0"
+                      spellCheck="false"
+                    />
+                  </div>
                 </div>
 
                 {/* VS CODE BOTTOM STATUS BAR */}
