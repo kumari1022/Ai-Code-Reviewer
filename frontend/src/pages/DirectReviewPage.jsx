@@ -22,16 +22,15 @@ import Navbar from "../components/Navbar";
 import FormattedMarkdown from "../components/FormattedMarkdown";
 import { API_URL } from "../config";
 
-// Production Java scenarios for live interactive audit demonstrations
-const JAVA_TEMPLATES = [
+// Multi-language code templates for interactive live audits
+const CODE_TEMPLATES = [
   {
-    name: "Order Service (Clean Architecture)",
+    name: "☕ Java: Order Service (Clean Architecture)",
     fileName: "OrderProcessingService.java",
     code: `package com.app.service;
 
 import java.math.BigDecimal;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 public class OrderProcessingService {
@@ -54,51 +53,92 @@ public class OrderProcessingService {
 }`
   },
   {
-    name: "SQL Injection Exposure (Vulnerable)",
-    fileName: "UserAuthenticationDAO.java",
-    code: `package com.app.dao;
+    name: "🐍 Python: Data Ingestion (Resource & GIL Audit)",
+    fileName: "DataPipeline.py",
+    code: `import json
+import logging
+from typing import Dict, Any, Optional
 
-import java.sql.*;
+logging.basicConfig(level=logging.INFO)
 
-public class UserAuthenticationDAO {
+class DataIngestionPipeline:
+    def __init__(self, config_path: str):
+        self.config_path = config_path
 
-    public boolean authenticateUser(String email, String rawPassword) throws SQLException {
-        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db", "root", "pass");
-        
-        // VULNERABLE: Direct concatenation creates severe SQL injection exposure!
-        String sql = "SELECT * FROM users WHERE email = '" + email + "' AND password = '" + rawPassword + "'";
-        
-        Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery(sql);
-        
-        return rs.next();
-    }
-}`
+    def process_payload(self, raw_data: str) -> Optional[Dict[str, Any]]:
+        # VULNERABLE: Bare except block hides json parsing errors & system interrupts!
+        try:
+            payload = json.loads(raw_data)
+            if "user_id" not in payload:
+                raise ValueError("Missing mandatory field: user_id")
+            
+            # Anti-pattern: Modifying global state or unhandled file operations
+            file = open(self.config_path, "a")
+            file.write(json.dumps(payload) + "\n")
+            # Note: File is left unclosed if an exception occurs before file.close()
+            file.close()
+            return payload
+        except:
+            print("Error occurred while processing payload")
+            return None`
   },
   {
-    name: "Resource Leak & Silent Catch (Vulnerable)",
-    fileName: "FileBatchProcessor.java",
-    code: `package com.app.io;
+    name: "⚡ JavaScript: Auth Middleware (Async & Security Audit)",
+    fileName: "AuthMiddleware.js",
+    code: `const jwt = require("jsonwebtoken");
 
-import java.io.*;
+function verifyToken(req, res, next) {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
 
-public class FileBatchProcessor {
-
-    public void processBatchLogs(String filePath) {
-        try {
-            // VULNERABLE: Stream opened without try-with-resources block!
-            BufferedReader reader = new BufferedReader(new FileReader(filePath));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println("Processing: " + line);
-            }
-            reader.close();
-        } catch (IOException e) {
-            // ANTI-PATTERN: Silent catch block hides file stream failures
-            e.printStackTrace();
-        }
+    if (!token) {
+        return res.status(401).json({ error: "Access Denied: No Token Provided" });
     }
-}`
+
+    // VULNERABLE: Hardcoded JWT secret key & synchronous token verification!
+    jwt.verify(token, "SECRET_KEY_123", (err, user) => {
+        if (err) {
+            // Anti-pattern: Exposing internal error stack traces to client
+            return res.status(403).json({ error: err.message, stack: err.stack });
+        }
+        req.user = user;
+        next();
+    });
+}
+
+module.exports = { verifyToken };`
+  },
+  {
+    name: "⚙️ C++: Memory Buffer (Raw Pointer & Leak Audit)",
+    fileName: "MemoryBufferPool.cpp",
+    code: `#include <iostream>
+#include <cstring>
+
+class MemoryBuffer {
+private:
+    char* data;
+    size_t size;
+
+public:
+    MemoryBuffer(size_t sz) : size(sz) {
+        // VULNERABLE: Raw pointer allocation without smart pointer std::unique_ptr
+        data = new char[sz];
+    }
+
+    void writeString(const char* str) {
+        // VULNERABLE: Buffer overflow risk! strcpy does not check destination size bound
+        strcpy(data, str);
+    }
+
+    void printBuffer() {
+        std::cout << "Buffer Content: " << data << std::endl;
+    }
+
+    // VULNERABLE: Destructor missing delete[] data causes severe memory leak!
+    ~MemoryBuffer() {
+        // missing: delete[] data;
+    }
+};`
   }
 ];
 
@@ -282,13 +322,13 @@ function DirectReviewPage() {
                 Load Template:
               </span>
               <div className="flex flex-wrap gap-2">
-                {JAVA_TEMPLATES.map((tmpl, idx) => (
+                {CODE_TEMPLATES.map((tmpl, idx) => (
                   <button
                     key={idx}
                     onClick={() => loadTemplate(tmpl)}
-                    className="px-3 py-1.5 rounded-lg bg-slate-900/60 hover:bg-blue-950/40 text-slate-300 hover:text-blue-400 border border-slate-800/80 hover:border-blue-900/20 text-xs font-medium transition-all"
+                    className="px-3 py-1.5 rounded-lg bg-slate-900/80 hover:bg-blue-950/40 text-slate-300 hover:text-blue-400 border border-slate-800 hover:border-blue-900/30 text-xs font-medium transition-all"
                   >
-                    {tmpl.name.split(" ")[0]} {tmpl.name.split(" ")[1]}
+                    {tmpl.name}
                   </button>
                 ))}
               </div>

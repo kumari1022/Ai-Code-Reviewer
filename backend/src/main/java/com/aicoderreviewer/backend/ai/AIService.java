@@ -60,19 +60,46 @@ public class AIService {
             // DETECT LANGUAGE
             String language = detector.detectLanguage(fileName);
 
+            // LANGUAGE-SPECIFIC AUDIT FOCUS
+            String extraRules = switch (language) {
+                case "PYTHON" -> "Check PEP 8 style guidelines, type annotation safety, GIL concurrency bottlenecks, resource unclosed streams ('with' statement usage), and SQL/Command injection.";
+                case "JAVASCRIPT", "TYPESCRIPT" -> "Check Async/Await error handling, promise rejections, XSS/CSRF exposures, prototype leaks, ES6+ standards, and event listener cleanup.";
+                case "CPP" -> "Check raw pointer memory leaks, buffer overflows, dangling references, undefined behavior, use of smart pointers (std::unique_ptr/std::shared_ptr), and thread safety.";
+                case "GO" -> "Check Goroutine leaks, channel deadlock risks, error handling conventions (if err != nil), and pointer safety.";
+                case "RUST" -> "Check ownership/borrowing anti-patterns, unsafe block justifications, lifetime bounds, and Error handling with Result/Option.";
+                case "JAVA" -> "Check thread safety, SQL injection, try-with-resources leaks, Stream API performance, and Spring framework anti-patterns.";
+                default -> "Check logic errors, edge cases, performance bottlenecks, security vulnerabilities, and code maintainability.";
+            };
+
             // PROMPT
             String prompt = """
-                    Analyze this %s code.
+                    You are an expert static analysis engineer. Perform a thorough code review of this %s file ("%s").
 
-                    Give:
-                    1. Bugs
-                    2. Optimizations
-                    3. Security issues
-                    4. Code quality suggestions
-
-                    Code:
+                    Specialized Audit Rules for %s:
                     %s
-                    """.formatted(language, code);
+
+                    Please format your review into the following clear sections using Markdown:
+
+                    ### 1. Executive Summary & Maintainability Score (0-100)
+                    ### 2. Critical Bugs & Security Risks
+                    ### 3. Performance & Memory Optimizations
+                    ### 4. Code Quality & Idiomatic Refactoring
+                    ### 5. Recommended Fixed Code Snippet (in ```%s code block)
+
+                    Source Code ("%s"):
+                    ```%s
+                    %s
+                    ```
+                    """.formatted(
+                            language, 
+                            fileName, 
+                            language, 
+                            extraRules, 
+                            language.toLowerCase(), 
+                            fileName, 
+                            language.toLowerCase(), 
+                            code
+                    );
 
             // MESSAGE
             Map<String, Object> message = Map.of(
