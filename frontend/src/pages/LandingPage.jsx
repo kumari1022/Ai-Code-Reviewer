@@ -3,90 +3,82 @@ import {
   Code2, 
   Cpu, 
   History, 
-  Lock, 
+  ShieldCheck, 
   UploadCloud, 
   MessageSquare, 
   ArrowRight, 
-  CheckCircle,
-  Zap
+  CheckCircle2,
+  Sparkles,
+  Zap,
+  Terminal
 } from "lucide-react";
 
 function LandingPage() {
   const features = [
     {
-      title: "AI Code Review",
-      description: "Analyze Java code instantly using advanced Groq AI models.",
-      icon: <Cpu className="text-blue-400" size={26} />
+      title: "Static Analysis & Complexity Checks",
+      description: "Detect hidden performance bottlenecks, high cyclomatic complexity, and memory leaks before pushing to production.",
+      icon: <Cpu className="text-blue-400" size={24} />
     },
     {
-      title: "AI Chat Assistant",
-      description: "Chat with AI to optimize, refactor, and debug your code in real-time.",
-      icon: <MessageSquare className="text-purple-400" size={26} />
+      title: "Security & Vulnerability Audits",
+      description: "Flag SQL injection risks, unhandled exceptions, and authentication flaws with instant remediation steps.",
+      icon: <ShieldCheck className="text-emerald-400" size={24} />
     },
     {
-      title: "Review History",
-      description: "Access and review all previous AI analysis sessions anytime, anywhere.",
-      icon: <History className="text-emerald-400" size={26} />
+      title: "Interactive Refactoring Assistant",
+      description: "Ask questions, explore alternative design patterns, and request line-by-line fixes in real-time.",
+      icon: <MessageSquare className="text-purple-400" size={24} />
     },
     {
-      title: "Secure Platform",
-      description: "Full JWT Authentication integrated with standard Spring Security rules.",
-      icon: <Lock className="text-orange-400" size={26} />
+      title: "Audit History & Quality Metrics",
+      description: "Store past code reviews, track maintainability scores over time, and compare historical metrics.",
+      icon: <History className="text-amber-400" size={24} />
     }
-  ];
-
-  const technologies = [
-    "React 19",
-    "Spring Boot 3",
-    "JWT Security",
-    "Redis Cache",
-    "MySQL DB",
-    "Groq AI API",
-    "Tailwind CSS"
   ];
 
   const steps = [
     {
       number: "01",
-      title: "Upload File",
-      description: "Drop your Java source code file in our smart analyzer.",
-      icon: <UploadCloud className="text-blue-500" size={32} />
+      title: "Provide Source Code",
+      description: "Paste snippet directly or upload `.java` source code files into the reviewer.",
+      icon: <UploadCloud className="text-blue-400" size={28} />
     },
     {
       number: "02",
-      title: "AI Analysis",
-      description: "Groq AI scans for complexity, bugs, and maintainability.",
-      icon: <Cpu className="text-purple-500" size={32} />
+      title: "Automated Inspection",
+      description: "Deep static inspection evaluates code structure, safety, and maintainability.",
+      icon: <Cpu className="text-purple-400" size={28} />
     },
     {
       number: "03",
-      title: "Deep Review",
-      description: "Get localized scores and lines requiring immediate fixes.",
-      icon: <CheckCircle className="text-indigo-500" size={32} />
+      title: "Line-by-Line Feedback",
+      description: "Review localized issue cards, severity levels, and suggested code diffs.",
+      icon: <CheckCircle2 className="text-emerald-400" size={28} />
     },
     {
       number: "04",
-      title: "Interactive Chat",
-      description: "Discuss fixes and ask questions to the AI assistant.",
-      icon: <MessageSquare className="text-emerald-500" size={32} />
+      title: "Iterate & Refactor",
+      description: "Use the built-in coding assistant to refine code structure and clean up warnings.",
+      icon: <MessageSquare className="text-amber-400" size={28} />
     }
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white selection:bg-blue-500/20 mesh-gradient relative overflow-hidden flex flex-col">
-      {/* Decorative Blur Orbs */}
-      <div className="absolute top-1/4 left-1/4 w-72 sm:w-96 h-72 sm:h-96 bg-blue-500/10 rounded-full blur-[100px] animate-pulse-glow z-0"></div>
-      <div className="absolute top-2/3 right-1/4 w-72 sm:w-96 h-72 sm:h-96 bg-purple-500/10 rounded-full blur-[100px] animate-pulse-glow delay-1000 z-0"></div>
+    <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-blue-500/20 mesh-gradient relative overflow-hidden flex flex-col font-sans">
+      {/* Decorative Orbs */}
+      <div className="absolute top-1/4 left-1/4 w-72 sm:w-96 h-72 sm:h-96 bg-blue-500/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+      <div className="absolute top-2/3 right-1/4 w-72 sm:w-96 h-72 sm:h-96 bg-purple-500/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
 
-      {/* VIEWPORT HERO SPLASH (Navbar + Centered Hero) */}
+      {/* HERO WRAPPER */}
       <div className="min-h-screen flex flex-col justify-between relative z-10 w-full">
         {/* NAVBAR */}
-        <nav className="flex flex-col sm:flex-row gap-4 justify-between items-center max-w-7xl w-full mx-auto px-4 sm:px-8 py-5 sm:py-6">
+        <header className="flex flex-col sm:flex-row gap-4 justify-between items-center max-w-7xl w-full mx-auto px-4 sm:px-8 py-5 sm:py-6">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-md shadow-blue-500/10">
               <Code2 className="text-white" size={20} />
             </div>
-            <span className="text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-200">
+            <span className="text-lg sm:text-xl font-bold tracking-tight text-white">
               AI Code Reviewer
             </span>
           </div>
@@ -94,65 +86,67 @@ function LandingPage() {
           <div className="flex items-center gap-3 sm:gap-4">
             <Link
               to="/login"
-              className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-355 hover:text-white hover:bg-slate-900/50 border border-slate-900 hover:border-slate-800 transition-all duration-300"
+              className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-900/60 border border-slate-850 hover:border-slate-800 transition-all duration-200"
             >
-              Login
+              Sign In
             </Link>
             <Link
               to="/register"
-              className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+              className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20 hover:shadow-blue-500/30 transition-all duration-200"
             >
               Get Started
             </Link>
           </div>
-        </nav>
+        </header>
 
-        {/* HERO SECTION - Centered in remaining space of viewport */}
-        <section className="flex-1 flex flex-col items-center justify-center text-center max-w-7xl w-full mx-auto px-4 sm:px-8 py-10 md:py-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-6 sm:mb-8 rounded-full bg-slate-900/80 border border-slate-800 text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wide">
-            <Zap size={12} className="text-blue-400 animate-bounce" />
-            <span>Intelligent Java Code Assistant</span>
+        {/* HERO SECTION */}
+        <section className="flex-1 flex flex-col items-center justify-center text-center max-w-7xl w-full mx-auto px-4 sm:px-8 py-12 md:py-20">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-6 sm:mb-8 rounded-full bg-slate-900/90 border border-slate-800 text-xs font-medium text-slate-300">
+            <Sparkles size={14} className="text-blue-400" />
+            <span>Developer-First Static Code Inspection</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] max-w-5xl">
-            Automated AI Powered
-            <span className="block mt-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 text-glow-blue">
-              Code Review Platform
+          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.15] max-w-4xl text-white">
+            Deep Code Reviews &amp; Security Audits
+            <span className="block mt-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">
+              in Seconds
             </span>
           </h1>
 
-          <p className="text-slate-455 text-sm sm:text-base md:text-lg mt-6 sm:mt-8 max-w-3xl leading-relaxed">
-            Upload your Java source files, receive detailed AI analysis instantly,
-            detect hidden bugs, check complex blocks, and debug interactively with
-            your private AI coding assistant.
+          <p className="text-slate-400 text-sm sm:text-base md:text-lg mt-6 max-w-2xl leading-relaxed">
+            Automate code quality inspections, catch hidden security vulnerabilities, and receive actionable refactoring recommendations before shipping code.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 mt-10 sm:mt-12 z-20 w-full sm:w-auto px-4 sm:px-0 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 mt-8 sm:mt-10 z-20 w-full sm:w-auto px-4 sm:px-0 justify-center">
             <Link
               to="/register"
-              className="group flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold shadow-xl shadow-blue-500/10 hover:shadow-blue-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 w-full sm:w-auto"
+              className="group flex items-center justify-center gap-2.5 bg-blue-600 hover:bg-blue-500 text-white px-7 py-3.5 rounded-xl text-sm font-semibold shadow-lg shadow-blue-600/20 transition-all duration-200 w-full sm:w-auto"
             >
-              <span>Start Reviewing Free</span>
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              <span>Start Reviewing Code</span>
+              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+            <Link
+              to="/login"
+              className="flex items-center justify-center gap-2 bg-slate-900/80 hover:bg-slate-900 border border-slate-800 text-slate-300 hover:text-white px-7 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 w-full sm:w-auto"
+            >
+              <Terminal size={16} />
+              <span>Explore Studio</span>
             </Link>
           </div>
         </section>
 
-        {/* Dummy spacer to match exact vertical center relative to navbar */}
-        <div className="h-20 hidden md:block select-none pointer-events-none"></div>
+        <div className="h-16 hidden md:block select-none pointer-events-none"></div>
       </div>
 
-      {/* VALUE ADDED SCROLL SECTIONS */}
+      {/* FEATURES & VALUE PROPOSITION */}
       <div className="relative z-10 w-full">
-
-        {/* FEATURES SECTION */}
-        <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 py-16 sm:py-24 border-t border-slate-900/60">
-          <div className="text-center max-w-3xl mx-auto mb-16 sm:mb-20">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">
-              Designed for Clean Code
+        <section className="max-w-7xl mx-auto px-4 sm:px-8 py-16 sm:py-24 border-t border-slate-900">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">
+              Built for Clean Engineering Standards
             </h2>
-            <p className="text-slate-500 text-xs sm:text-sm mt-3 sm:mt-4">
-              Leverage bleeding-edge AI models to continuously refine and optimize your software development flow.
+            <p className="text-slate-400 text-xs sm:text-sm mt-3">
+              Comprehensive static checks designed to maintain codebase health and readability.
             </p>
           </div>
 
@@ -160,12 +154,12 @@ function LandingPage() {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="glass-panel p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-slate-900/80 hover:border-blue-500/20 glass-panel-hover flex flex-col items-start"
+                className="glass-panel p-6 sm:p-7 rounded-2xl border border-slate-900 hover:border-slate-800 transition-all duration-200 flex flex-col items-start"
               >
-                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-slate-900 flex items-center justify-center border border-slate-800/60 mb-5 sm:mb-6 shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center border border-slate-800 mb-5 shrink-0">
                   {feature.icon}
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-white mb-2 sm:mb-3">
+                <h3 className="text-base font-semibold text-white mb-2">
                   {feature.title}
                 </h3>
                 <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
@@ -176,32 +170,31 @@ function LandingPage() {
           </div>
         </section>
 
-        {/* HOW IT WORKS */}
-        <section className="relative z-10 bg-slate-950/40 backdrop-blur-sm border-y border-slate-900/60 py-16 sm:py-24">
+        {/* WORKFLOW PIPELINE */}
+        <section className="bg-slate-950/60 border-y border-slate-900 py-16 sm:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-8">
-            <div className="text-center max-w-3xl mx-auto mb-16 sm:mb-20">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">
-                Simple 4-Step Pipeline
+            <div className="text-center max-w-2xl mx-auto mb-16">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">
+                How Code Audits Work
               </h2>
-              <p className="text-slate-500 text-xs sm:text-sm mt-3 sm:mt-4">
-                Get detailed suggestions and optimizations in less than 30 seconds.
+              <p className="text-slate-400 text-xs sm:text-sm mt-3">
+                Streamlined inspection pipeline from input submission to actionable diffs.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {steps.map((step, index) => (
-                <div key={index} className="glass-panel p-6 rounded-2xl flex flex-col items-center text-center relative hover:border-slate-800 transition-all duration-300 group">
-                  {/* Step number badge */}
-                  <div className="absolute top-4 left-4 text-[10px] font-extrabold tracking-widest text-blue-500 bg-blue-500/10 border border-blue-500/20 px-2.5 py-0.5 rounded-full select-none uppercase">
-                    STEP {step.number}
+                <div key={index} className="glass-panel p-6 rounded-2xl flex flex-col items-start relative border border-slate-900 hover:border-slate-800 transition-all duration-200">
+                  <div className="text-[11px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2.5 py-0.5 rounded-md mb-4 uppercase tracking-wide">
+                    {step.number}
                   </div>
-                  <div className="w-16 h-16 rounded-2xl bg-slate-900 flex items-center justify-center border border-slate-800 shadow-xl relative z-10 mb-5 mt-4 shrink-0">
+                  <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center border border-slate-800 mb-4 shrink-0">
                     {step.icon}
                   </div>
-                  <h3 className="text-base sm:text-lg font-bold text-slate-200 mb-2 relative z-10">
+                  <h3 className="text-base font-semibold text-white mb-2">
                     {step.title}
                   </h3>
-                  <p className="text-slate-450 text-xs sm:text-sm leading-relaxed relative z-10 px-2">
+                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
                     {step.description}
                   </p>
                 </div>
@@ -210,19 +203,18 @@ function LandingPage() {
           </div>
         </section>
 
-        {/* CTA */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 w-full relative z-10">
-          <section className="max-w-5xl mx-auto px-6 sm:px-10 py-12 sm:py-16 my-12 sm:my-20 rounded-[32px] overflow-hidden text-center glass-panel border border-slate-900 shadow-2xl shadow-blue-500/5 relative">
-            <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/5 to-purple-500/5 pointer-events-none"></div>
-            <h2 className="text-2xl sm:text-3xl md:text-5xl font-extrabold leading-tight max-w-3xl mx-auto px-2">
-              Start Building Better Code With AI
+        {/* CTA BANNER */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 w-full">
+          <section className="max-w-4xl mx-auto px-6 sm:px-10 py-12 sm:py-16 my-12 sm:my-20 rounded-3xl text-center glass-panel border border-slate-900 relative">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">
+              Ready to elevate your code quality?
             </h2>
-            <p className="text-slate-455 text-xs sm:text-sm md:text-base mt-4 sm:mt-6 max-w-xl mx-auto leading-relaxed">
-              Sign up to experience instant intelligent code analysis and refactoring tips powered by advanced LLMs.
+            <p className="text-slate-400 text-xs sm:text-sm md:text-base mt-4 max-w-lg mx-auto leading-relaxed">
+              Create an account to start analyzing source files and receiving instant refactoring insights.
             </p>
             <Link
               to="/register"
-              className="inline-block mt-8 sm:mt-10 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-8 sm:px-10 py-3.5 sm:py-4.5 rounded-xl sm:rounded-2xl text-xs sm:text-base font-bold shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 hover:scale-105 transition-all duration-300"
+              className="inline-block mt-8 bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-xl text-sm font-semibold shadow-lg shadow-blue-600/20 transition-all duration-200"
             >
               Get Started Free
             </Link>
@@ -231,8 +223,8 @@ function LandingPage() {
       </div>
 
       {/* FOOTER */}
-      <footer className="relative z-10 border-t border-slate-900/60 px-4 sm:px-8 py-6 sm:py-8 text-center text-[10px] sm:text-xs text-slate-500 tracking-wider">
-        © 2026 AI Code Reviewer. Engineered with React 19, Spring Boot, Redis, Groq & Tailwind CSS.
+      <footer className="border-t border-slate-900 px-4 sm:px-8 py-6 text-center text-xs text-slate-500">
+        © 2026 AI Code Reviewer. Engineered for modern software development teams.
       </footer>
     </div>
   );

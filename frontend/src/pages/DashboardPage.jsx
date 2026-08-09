@@ -8,7 +8,9 @@ import {
   Star,
   TrendingUp,
   ArrowRight,
-  FolderOpen
+  FolderOpen,
+  Code2,
+  CheckCircle2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -36,8 +38,8 @@ function DashboardPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-  `${API_URL}/api/review/all`,
-  {
+        `${API_URL}/api/review/all`,
+        {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -58,7 +60,6 @@ function DashboardPage() {
   const uniqueFiles = new Set(reviewsList.map((r) => r.fileName)).size;
 
   // 3. Issues Found
-  // Count only actual bullet points and numbered issue descriptions (excluding headers ending in colons)
   let totalIssues = 0;
   reviewsList.forEach((r) => {
     if (r.review) {
@@ -73,35 +74,34 @@ function DashboardPage() {
   const issuesDisplay = reviewsList.length > 0 ? totalIssues : 0;
 
   // 4. Code Quality Score
-  // Deduct 3% per issue found, average across all reviews, starting at a base of 100%
   const averageScore = reviewsList.length > 0
     ? Math.max(35, Math.round(100 - (totalIssues / reviewsList.length) * 3))
     : 100;
 
   const stats = [
     {
-      title: "Total Reviews",
+      title: "Total Audits",
       value: loading ? "..." : String(totalReviews),
       color: "from-blue-600/20 to-blue-400/20 border-blue-500/30 text-blue-400",
-      icon: <FileCode size={24} />
+      icon: <FileCode size={22} />
     },
     {
-      title: "Files Analyzed",
+      title: "Unique Modules",
       value: loading ? "..." : String(uniqueFiles),
       color: "from-emerald-600/20 to-emerald-400/20 border-emerald-500/30 text-emerald-400",
-      icon: <Upload size={24} />
+      icon: <Upload size={22} />
     },
     {
-      title: "Issues Found",
+      title: "Vulnerabilities Flagged",
       value: loading ? "..." : String(issuesDisplay),
       color: "from-amber-600/20 to-amber-400/20 border-amber-500/30 text-amber-400",
-      icon: <AlertTriangle size={24} />
+      icon: <AlertTriangle size={22} />
     },
     {
-      title: "Code Quality Score",
+      title: "Maintainability Rating",
       value: loading ? "..." : `${averageScore}%`,
       color: "from-purple-600/20 to-purple-400/20 border-purple-500/30 text-purple-400",
-      icon: <Star size={24} />
+      icon: <Star size={22} />
     }
   ];
 
@@ -130,12 +130,12 @@ function DashboardPage() {
       return {
         id: r.id,
         file: r.fileName,
-        status: issueCount <= 3 ? "Good" : "Needs Improvement",
+        status: issueCount <= 3 ? "Clean" : "Needs Refactoring",
         date: relativeTime
       };
     });
 
-  // Group reviews by day and count uploads per day in real-time
+  // Group reviews by day
   const uploadsMap = {};
   reviewsList.forEach((r) => {
     if (r.createdAt) {
@@ -149,7 +149,6 @@ function DashboardPage() {
     }
   });
 
-  // Convert map to sorted array list chronologically
   const processedChartData = Object.keys(uploadsMap)
     .sort((a, b) => new Date(a) - new Date(b))
     .map((day) => ({
@@ -157,7 +156,6 @@ function DashboardPage() {
       uploads: uploadsMap[day]
     }));
 
-  // Fallback defaults if no files are analyzed yet
   const chartData = processedChartData.length > 0
     ? processedChartData
     : [
@@ -170,79 +168,83 @@ function DashboardPage() {
         { name: "Sun", uploads: 0 }
       ];
 
-  const userEmail = localStorage.getItem("email") || "developer@example.com";
+  const userEmail = localStorage.getItem("email") || "developer@domain.com";
   const userFirstName = userEmail.split("@")[0].split(".")[0];
   const capitalizedName = userFirstName.charAt(0).toUpperCase() + userFirstName.slice(1);
 
   return (
-    <div className="flex bg-[#030712] min-h-screen text-slate-100 overflow-hidden">
-      {/* GLOBAL SIDEBAR */}
+    <div className="flex bg-[#030712] min-h-screen text-slate-100 overflow-hidden font-sans">
       <Sidebar />
 
       <div className="flex-1 flex flex-col h-screen overflow-y-auto">
-        {/* GLOBAL HEADER */}
         <Navbar title="Developer Dashboard" />
 
-        {/* WORKSPACE CONTENT */}
-        <div className="p-8 md:p-10 max-w-7xl w-full mx-auto flex flex-col gap-8">
+        <div className="p-6 md:p-8 max-w-7xl w-full mx-auto flex flex-col gap-8">
           
           {/* HERO BANNER */}
-          <div className="relative overflow-hidden bg-gradient-to-r from-slate-950 via-[#0b1329] to-slate-950 border border-slate-900 rounded-[32px] p-8 md:p-10 flex justify-between items-center shadow-xl shadow-blue-500/[0.02]">
+          <div className="relative overflow-hidden bg-gradient-to-r from-slate-950 via-[#0b1329] to-slate-950 border border-slate-900 rounded-2xl p-6 md:p-8 flex justify-between items-center shadow-xl">
             <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-[80px]"></div>
             <div className="relative z-10 flex-1">
-              <span className="text-blue-400 text-sm font-semibold tracking-wider uppercase">
-                Developer Space
-              </span>
-              <h1 className="text-4xl md:text-5xl font-extrabold text-white mt-2 tracking-tight leading-tight">
-                Welcome Back, {capitalizedName} 👋
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs font-medium text-blue-400 mb-3">
+                <Code2 size={13} />
+                <span>Code Inspection Workspace</span>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight leading-tight">
+                Welcome back, {capitalizedName}
               </h1>
-              <p className="text-slate-400 text-sm md:text-base mt-4 max-w-xl leading-relaxed">
-                Upload your Java components for automated Groq AI diagnostics, 
-                structural complexity tests, and live debugging prompts.
+              <p className="text-slate-400 text-xs sm:text-sm mt-3 max-w-xl leading-relaxed">
+                Run static analysis on Java components, inspect security warnings, and review structural metrics in real-time.
               </p>
-              <div className="flex gap-4 mt-8">
+              <div className="flex gap-3 mt-6">
                 <Link
                   to="/upload"
-                  className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-6 py-3 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 transition-all duration-300"
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-xs font-semibold shadow-md shadow-blue-600/20 transition-all duration-200"
                 >
-                  <span>Upload Code</span>
-                  <ArrowRight size={16} />
+                  <span>New Code Audit</span>
+                  <ArrowRight size={14} />
                 </Link>
                 <Link
                   to="/chat"
-                  className="bg-slate-900 hover:bg-slate-800 border border-slate-850 px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300"
+                  className="bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-white px-5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200"
                 >
                   Ask Assistant
                 </Link>
               </div>
             </div>
 
-            <div className="hidden lg:block z-10 w-[240px] h-[240px] mr-8">
-              <img
-                src="https://cdn-icons-png.flaticon.com/512/6062/6062646.png"
-                alt="AI Tech"
-                className="w-full h-full object-contain opacity-70 filter drop-shadow-[0_0_30px_rgba(59,130,246,0.2)] animate-pulse"
-              />
+            {/* DECORATIVE MINIMALIST CODE CARD */}
+            <div className="hidden lg:flex z-10 w-72 p-4 bg-slate-950/80 border border-slate-900 rounded-xl flex-col font-mono text-[11px] leading-relaxed text-slate-400 shadow-2xl">
+              <div className="flex items-center gap-1.5 mb-3 border-b border-slate-900 pb-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500/60"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-amber-500/60"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/60"></div>
+                <span className="text-[10px] text-slate-500 ml-auto">StaticAudit.java</span>
+              </div>
+              <div><span className="text-purple-400">public class</span> <span className="text-blue-300">AuditPipeline</span> &#123;</div>
+              <div className="pl-3"><span className="text-purple-400">public void</span> <span className="text-blue-300">inspect</span>() &#123;</div>
+              <div className="pl-6 text-emerald-400">// Analysis active</div>
+              <div className="pl-3">&#125;</div>
+              <div>&#125;</div>
             </div>
           </div>
 
           {/* STATS GRID */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {stats.map((stat, index) => (
               <div
                 key={index}
-                className="bg-slate-950/40 backdrop-blur-md border border-slate-900 rounded-3xl p-6 flex flex-col justify-between hover:border-slate-800 transition-all duration-300 group"
+                className="bg-slate-950/50 border border-slate-900 rounded-2xl p-5 flex flex-col justify-between hover:border-slate-800 transition-all duration-200"
               >
                 <div className="flex justify-between items-start">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                     {stat.title}
                   </span>
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center border shadow-sm`}>
+                  <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center border shadow-sm`}>
                     {stat.icon}
                   </div>
                 </div>
                 <div className="mt-4">
-                  <p className="text-3xl font-extrabold text-white tracking-tight group-hover:scale-105 origin-left transition-transform">
+                  <p className="text-2xl font-bold text-white tracking-tight">
                     {stat.value}
                   </p>
                 </div>
@@ -251,24 +253,27 @@ function DashboardPage() {
           </div>
 
           {/* MID SECTION: CHART & REVIEWS */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* ANALYSIS UPLOADS VOLUME CHART */}
-            <div className="lg:col-span-2 bg-slate-950/40 backdrop-blur-md border border-slate-900 rounded-3xl p-6 flex flex-col">
-              <div className="flex items-center gap-2 mb-6">
-                <TrendingUp size={18} className="text-blue-400" />
-                <h2 className="text-lg font-bold text-white tracking-wide">
-                  Analysis Uploads per Day
-                </h2>
+            {/* CHART */}
+            <div className="lg:col-span-2 bg-slate-950/50 border border-slate-900 rounded-2xl p-6 flex flex-col">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <TrendingUp size={16} className="text-blue-400" />
+                  <h2 className="text-sm font-semibold text-white tracking-wide">
+                    Audit Activity History
+                  </h2>
+                </div>
+                <span className="text-xs text-slate-500">Last 7 Days</span>
               </div>
 
-              <div className="h-64 w-full">
+              <div className="h-60 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="scoreColor" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" opacity={0.3} />
@@ -278,14 +283,15 @@ function DashboardPage() {
                       contentStyle={{ 
                         backgroundColor: "#090d16", 
                         border: "1px solid #1e293b", 
-                        borderRadius: "12px",
+                        borderRadius: "10px",
+                        fontSize: "12px",
                         color: "#f8fafc" 
                       }} 
                     />
                     <Area 
                       type="monotone" 
                       dataKey="uploads" 
-                      stroke="#3b82f6" 
+                      stroke="#2563eb" 
                       strokeWidth={2}
                       fillOpacity={1} 
                       fill="url(#scoreColor)" 
@@ -296,65 +302,69 @@ function DashboardPage() {
             </div>
 
             {/* RECENT REVIEWS */}
-            <div className="bg-slate-950/40 backdrop-blur-md border border-slate-900 rounded-3xl p-6 flex flex-col justify-between">
+            <div className="bg-slate-950/50 border border-slate-900 rounded-2xl p-6 flex flex-col justify-between">
               <div>
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-lg font-bold text-white tracking-wide">
-                    Recent Reviews
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-900">
+                  <h2 className="text-sm font-semibold text-white tracking-wide flex items-center gap-2">
+                    <FolderOpen size={16} className="text-purple-400" />
+                    Recent Audits
                   </h2>
-                  <Link to="/history" className="text-xs font-semibold text-blue-500 hover:text-blue-400 transition-colors">
-                    View All
+                  <Link to="/history" className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium">
+                    View all <ArrowRight size={12} />
                   </Link>
                 </div>
 
-                <div className="flex flex-col gap-4">
-                  {loading ? (
-                    <div className="py-12 flex justify-center text-slate-500 text-xs">
-                      <span>Loading recent audits...</span>
+                {loading ? (
+                  <div className="py-8 text-center text-xs text-slate-500">Loading audit history...</div>
+                ) : recentReviews.length === 0 ? (
+                  <div className="py-8 text-center flex flex-col items-center">
+                    <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-500 mb-3 border border-slate-850">
+                      <FileCode size={18} />
                     </div>
-                  ) : recentReviews.length === 0 ? (
-                    <div className="py-12 flex flex-col items-center justify-center text-slate-500 text-xs text-center gap-2">
-                      <FolderOpen size={20} className="opacity-40" />
-                      <span>No code components reviewed yet.</span>
-                    </div>
-                  ) : (
-                    recentReviews.map((review, index) => (
+                    <p className="text-xs font-medium text-slate-400">No code audits recorded yet.</p>
+                    <p className="text-[11px] text-slate-500 mt-1 max-w-[200px]">
+                      Paste a Java snippet or upload a file to start.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {recentReviews.map((item) => (
                       <Link
-                        to={`/review/${review.id}`}
-                        key={index}
-                        className="bg-slate-900/30 border border-slate-900/80 hover:border-slate-800 rounded-2xl p-4 flex justify-between items-center transition-all cursor-pointer group"
+                        key={item.id}
+                        to={`/review/${item.id}`}
+                        className="p-3 rounded-xl bg-slate-900/60 border border-slate-850 hover:border-slate-800 flex justify-between items-center transition-all duration-200"
                       >
-                        <div className="overflow-hidden mr-2">
-                          <h3 className="text-sm font-semibold text-slate-200 truncate group-hover:text-white transition-colors">
-                            {review.file}
-                          </h3>
-                          <p className="text-xs text-slate-500 mt-1">
-                            {review.date}
+                        <div className="overflow-hidden pr-2">
+                          <p className="text-xs font-semibold text-slate-200 truncate">
+                            {item.file}
+                          </p>
+                          <p className="text-[10px] text-slate-500 mt-0.5">
+                            {item.date}
                           </p>
                         </div>
-
-                        <div className={`text-[10px] font-bold px-2.5 py-1 rounded-lg shrink-0 ${
-                          review.status === "Good"
-                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                            : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                        }`}>
-                          {review.status}
-                        </div>
+                        <span
+                          className={`text-[10px] font-medium px-2 py-0.5 rounded-md border shrink-0 ${
+                            item.status === "Clean"
+                              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                              : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                          }`}
+                        >
+                          {item.status}
+                        </span>
                       </Link>
-                    ))
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* QUICK TIP */}
-              <div className="mt-6 bg-blue-600/5 border border-blue-500/10 rounded-2xl p-4 text-xs text-slate-400 leading-relaxed flex gap-3">
-                <div className="text-blue-400">💡</div>
-                <span>
-                  <strong>Refactoring Pro Tip:</strong> Nested conditional structures drastically increase Cyclomatic Complexity. Extract validation checks into guard clauses to optimize scoring!
-                </span>
-              </div>
+              <Link
+                to="/upload"
+                className="w-full mt-4 py-2.5 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-900/80 text-xs font-semibold text-slate-300 text-center flex items-center justify-center gap-2 transition-all duration-200"
+              >
+                <span>Upload New Codebase</span>
+                <ArrowRight size={13} />
+              </Link>
             </div>
-
           </div>
 
         </div>

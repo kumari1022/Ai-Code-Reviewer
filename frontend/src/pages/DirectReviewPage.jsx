@@ -22,59 +22,79 @@ import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import { API_URL } from "../config";
 
-// Built-in high-quality Java templates to demonstrate the reviewer
+// Production Java scenarios for live interactive audit demonstrations
 const JAVA_TEMPLATES = [
   {
-    name: "Standard Greeter (Clean)",
-    fileName: "Greeter.java",
-    code: `public class Greeter {
-    public String sayHello(String name) {
-        if (name == null || name.trim().isEmpty()) {
-            return "Hello, Guest!";
+    name: "Order Service (Clean Architecture)",
+    fileName: "OrderProcessingService.java",
+    code: `package com.app.service;
+
+import java.math.BigDecimal;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.logging.Logger;
+
+public class OrderProcessingService {
+
+    private static final Logger LOGGER = Logger.getLogger(OrderProcessingService.class.getName());
+
+    public BigDecimal calculateDiscountedTotal(BigDecimal originalTotal, double discountPercentage) {
+        Objects.requireNonNull(originalTotal, "Original total amount cannot be null");
+        
+        if (discountPercentage < 0.0 || discountPercentage > 100.0) {
+            throw new IllegalArgumentException("Discount percentage must be between 0.0 and 100.0");
         }
-        return "Hello, " + name + "!";
+        
+        BigDecimal discountFactor = BigDecimal.valueOf(1.0 - (discountPercentage / 100.0));
+        BigDecimal finalPrice = originalTotal.multiply(discountFactor);
+        
+        LOGGER.info(() -> String.format("Processed discount: Original=%s, Final=%s", originalTotal, finalPrice));
+        return finalPrice;
     }
 }`
   },
   {
-    name: "SQL Injection Pitfall (Vulnerable)",
-    fileName: "UserDAO.java",
-    code: `import java.sql.*;
+    name: "SQL Injection Exposure (Vulnerable)",
+    fileName: "UserAuthenticationDAO.java",
+    code: `package com.app.dao;
 
-public class UserDAO {
-    public void getUserData(String userId) throws SQLException {
-        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db", "user", "pass");
+import java.sql.*;
+
+public class UserAuthenticationDAO {
+
+    public boolean authenticateUser(String email, String rawPassword) throws SQLException {
+        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db", "root", "pass");
         
-        // VULNERABLE: Direct string concatenation represents a severe SQL injection exposure!
-        String query = "SELECT * FROM users WHERE id = '" + userId + "'";
+        // VULNERABLE: Direct concatenation creates severe SQL injection exposure!
+        String sql = "SELECT * FROM users WHERE email = '" + email + "' AND password = '" + rawPassword + "'";
         
         Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery(query);
+        ResultSet rs = stmt.executeQuery(sql);
         
-        while (rs.next()) {
-            System.out.println(rs.getString("username"));
-        }
+        return rs.next();
     }
 }`
   },
   {
     name: "Resource Leak & Silent Catch (Vulnerable)",
-    fileName: "DataProcessor.java",
-    code: `import java.io.*;
+    fileName: "FileBatchProcessor.java",
+    code: `package com.app.io;
 
-public class DataProcessor {
-    public void processFile(String path) {
+import java.io.*;
+
+public class FileBatchProcessor {
+
+    public void processBatchLogs(String filePath) {
         try {
-            // VULNERABLE: File streams are opened but never closed in a finally block!
-            BufferedReader reader = new BufferedReader(new FileReader(path));
+            // VULNERABLE: Stream opened without try-with-resources block!
+            BufferedReader reader = new BufferedReader(new FileReader(filePath));
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.println(line.toUpperCase());
+                System.out.println("Processing: " + line);
             }
-            // If an exception occurs before this, the stream leaks!
             reader.close();
         } catch (IOException e) {
-            // BAD PRACTICE: Silent exception handling hides system faults
+            // ANTI-PATTERN: Silent catch block hides file stream failures
             e.printStackTrace();
         }
     }
