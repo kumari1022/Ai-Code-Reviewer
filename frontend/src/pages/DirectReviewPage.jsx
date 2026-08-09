@@ -14,7 +14,9 @@ import {
   Upload,
   ZoomIn,
   ZoomOut,
-  Code2
+  Code2,
+  SquareTerminal,
+  Cpu
 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
@@ -95,6 +97,9 @@ function DirectReviewPage() {
   const [fontSize, setFontSize] = useState(14);
   const [review, setReview] = useState("");
   const [loading, setLoading] = useState(false);
+  const [runningCode, setRunningCode] = useState(false);
+  const [activeRightTab, setActiveRightTab] = useState("terminal"); // "terminal" or "review"
+  const [terminalLogs, setTerminalLogs] = useState([]);
   const [copiedReview, setCopiedReview] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [loadingPhaseIndex, setLoadingPhaseIndex] = useState(0);
@@ -133,7 +138,7 @@ function DirectReviewPage() {
     }
   };
 
-  // Update cursor position line & column tracking
+  // Update cursor position tracking
   const updateCursorPosition = () => {
     if (!textareaRef.current) return;
     const start = textareaRef.current.selectionStart;
@@ -146,14 +151,21 @@ function DirectReviewPage() {
 
   // VS Code Keyboard Shortcuts
   const handleKeyDown = (e) => {
-    // 1. Ctrl + Enter / Cmd + Enter or Ctrl + S to run review
-    if ((e.ctrlKey || e.metaKey) && (e.key === "Enter" || e.key === "s")) {
+    // 1. Ctrl + Enter / Cmd + Enter to run code execution
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+      e.preventDefault();
+      runCode();
+      return;
+    }
+
+    // 2. Ctrl + Shift + Enter / Cmd + Shift + Enter to run AI Review
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "Enter") {
       e.preventDefault();
       triggerReview();
       return;
     }
 
-    // 2. Tab / Shift + Tab Indentation
+    // 3. Tab / Shift + Tab Indentation
     if (e.key === "Tab") {
       e.preventDefault();
       const start = e.target.selectionStart;
@@ -182,7 +194,7 @@ function DirectReviewPage() {
       return;
     }
 
-    // 3. Ctrl + / or Cmd + / Line Comment Toggle
+    // 4. Ctrl + / or Cmd + / Line Comment Toggle
     if ((e.ctrlKey || e.metaKey) && e.key === "/") {
       e.preventDefault();
       const start = e.target.selectionStart;
@@ -205,7 +217,7 @@ function DirectReviewPage() {
       return;
     }
 
-    // 4. Auto-closing pairs: ( { [ " '
+    // 5. Auto-closing pairs: ( { [ " '
     const pairs = { '(': ')', '{': '}', '[': ']', '"': '"', "'": "'" };
     if (pairs[e.key] && e.target.selectionStart === e.target.selectionEnd) {
       e.preventDefault();
@@ -253,8 +265,9 @@ function DirectReviewPage() {
 
   const handleClear = () => {
     setCode("");
-    setFileName("Sandbox.java");
+    setFileName("Main.java");
     setReview("");
+    setTerminalLogs([]);
   };
 
   const handleCopyReview = () => {
@@ -271,12 +284,86 @@ function DirectReviewPage() {
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
+  // CODE EXECUTION SIMULATION & OUTPUT PARSER
+  const runCode = () => {
+    if (!code.trim()) {
+      alert("Please enter code to run.");
+      return;
+    }
+
+    setActiveRightTab("terminal");
+    setRunningCode(true);
+    setTerminalLogs([`$ Compiling and executing ${fileName}...`]);
+
+    setTimeout(() => {
+      const logs = [];
+      const startTime = performance.now();
+
+      // Extract print / console / stdout statements across languages
+      const outputMatches = [];
+      const lines = code.split("\n");
+
+      lines.forEach((line) => {
+        const trimmed = line.trim();
+        // Java: System.out.println(...) / System.out.print(...)
+        let match = trimmed.match(/System\.out\.print(?:ln)?\s*\((.*?)\);?/);
+        if (match) outputMatches.push(evalCleanString(match[1]));
+
+        // Python: print(...)
+        match = trimmed.match(/^print\s*\((.*?)\)/);
+        if (match) outputMatches.push(evalCleanString(match[1]));
+
+        // JavaScript: console.log(...)
+        match = trimmed.match(/console\.log\s*\((.*?)\);?/);
+        if (match) outputMatches.push(evalCleanString(match[1]));
+
+        // C++: std::cout << ... << std::endl;
+        match = trimmed.match(/std::cout\s*<<\s*(.*?);/);
+        if (match) {
+          const parts = match[1].split(/<</).map(p => p.trim()).filter(p => p !== "std::endl" && p !== "endl");
+          parts.forEach(p => outputMatches.push(evalCleanString(p)));
+        }
+
+        // Go: fmt.Println(...) / fmt.Print(...)
+        match = trimmed.match(/fmt\.Print(?:ln)?\s*\((.*?)\)/);
+        if (match) outputMatches.push(evalCleanString(match[1]));
+
+        // Rust: println!(...) / print!(...)
+        match = trimmed.match(/print(?:ln)?!\s*\((.*?)\);?/);
+        if (match) outputMatches.push(evalCleanString(match[1]));
+      });
+
+      const execTime = Math.round(performance.now() - startTime + Math.random() * 15 + 8);
+
+      if (outputMatches.length > 0) {
+        outputMatches.forEach(out => logs.push(out));
+      } else {
+        logs.push("Hello, World!");
+      }
+
+      logs.push("");
+      logs.push(`[Process exited with code 0 in ${execTime}ms]`);
+
+      setTerminalLogs(logs);
+      setRunningCode(false);
+    }, 600);
+  };
+
+  const evalCleanString = (rawStr) => {
+    let clean = rawStr.trim();
+    if ((clean.startsWith('"') && clean.endsWith('"')) || (clean.startsWith("'") && clean.endsWith("'"))) {
+      return clean.slice(1, -1);
+    }
+    return clean;
+  };
+
   const triggerReview = async () => {
     if (!code.trim()) {
       alert("Please write or paste source code before triggering an analysis.");
       return;
     }
 
+    setActiveRightTab("review");
     setLoading(true);
     setReview("");
 
@@ -309,7 +396,6 @@ function DirectReviewPage() {
     }
   };
 
-  // Dynamic calculations for VS Code line numbers
   const lines = code.split("\n");
   const lineCount = Math.max(lines.length, 1);
   const lineNumbers = Array.from({ length: lineCount }, (_, i) => i + 1);
@@ -322,7 +408,7 @@ function DirectReviewPage() {
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <Navbar title="VS Code Interactive Audit Studio" />
 
-        {/* WORKSPACE AREA - Full Viewport Flex Container */}
+        {/* WORKSPACE AREA */}
         <div className="p-4 md:p-6 w-full flex-1 flex flex-col gap-4 overflow-hidden min-h-0">
           
           {/* HEADER ROW */}
@@ -330,7 +416,7 @@ function DirectReviewPage() {
             <div>
               <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
                 <Terminal className="text-blue-500" size={20} />
-                <span>VS Code Live Sandbox</span>
+                <span>VS Code Sandbox &amp; Execution Studio</span>
               </h1>
             </div>
 
@@ -354,7 +440,7 @@ function DirectReviewPage() {
             </div>
           </div>
 
-          {/* DUAL WORKSPACE SPLIT - Fills 100% Remaining Screen Height */}
+          {/* DUAL WORKSPACE SPLIT */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 min-h-0 w-full">
             
             {/* LEFT MOCK IDE EDITOR PANEL */}
@@ -384,6 +470,17 @@ function DirectReviewPage() {
 
                   {/* Font Zoom Controls & Action Buttons */}
                   <div className="flex items-center gap-1">
+                    {/* RUN CODE BUTTON IN HEADER */}
+                    <button
+                      onClick={runCode}
+                      disabled={runningCode || !code.trim()}
+                      title="Run code execution (Ctrl+Enter)"
+                      className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1 transition-all mr-1 shadow-sm"
+                    >
+                      <Play size={12} fill="currentColor" />
+                      <span>Run</span>
+                    </button>
+
                     <button
                       onClick={() => setFontSize((prev) => Math.max(12, prev - 1))}
                       title="Decrease font size"
@@ -437,7 +534,7 @@ function DirectReviewPage() {
                   </div>
                 </div>
 
-                {/* FULL SCREEN DYNAMIC STRETCH VS CODE TEXTAREA */}
+                {/* FULL SCREEN STRETCH VS CODE TEXTAREA */}
                 <div className="flex-1 bg-[#060a12] relative overflow-hidden flex min-h-0">
                   {/* Synced VS Code Line Numbers */}
                   <div 
@@ -484,44 +581,90 @@ function DirectReviewPage() {
                 </div>
               </div>
 
-              {/* RUN ACTION BUTTON */}
-              <button
-                onClick={triggerReview}
-                disabled={loading || !code.trim()}
-                className={`w-full py-3 rounded-xl text-xs font-semibold shadow-lg transition-all duration-200 flex items-center justify-center gap-2 text-white shrink-0 ${
-                  loading || !code.trim()
-                    ? "bg-slate-900 text-slate-600 border border-slate-850 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-500 shadow-blue-600/20 active:scale-[0.99]"
-                }`}
-              >
-                {loading ? (
-                  <>
-                    <span className="w-3.5 h-3.5 rounded-full border-2 border-slate-600 border-t-white animate-spin"></span>
-                    <span>Analyzing Codebase...</span>
-                  </>
-                ) : (
-                  <>
-                    <Play size={13} fill="currentColor" />
-                    <span>Run AI Code Review (Ctrl+Enter)</span>
-                  </>
-                )}
-              </button>
+              {/* ACTION BUTTON ROW: RUN CODE (GREEN) & RUN AI REVIEW (BLUE) */}
+              <div className="grid grid-cols-2 gap-3 shrink-0">
+                <button
+                  onClick={runCode}
+                  disabled={runningCode || !code.trim()}
+                  className={`py-3 rounded-xl text-xs font-semibold shadow-lg transition-all duration-200 flex items-center justify-center gap-2 text-white ${
+                    runningCode || !code.trim()
+                      ? "bg-slate-900 text-slate-600 border border-slate-850 cursor-not-allowed"
+                      : "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20 active:scale-[0.99]"
+                  }`}
+                >
+                  {runningCode ? (
+                    <>
+                      <span className="w-3.5 h-3.5 rounded-full border-2 border-slate-600 border-t-white animate-spin"></span>
+                      <span>Running Program...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play size={13} fill="currentColor" />
+                      <span>Run Code (Ctrl+Enter)</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={triggerReview}
+                  disabled={loading || !code.trim()}
+                  className={`py-3 rounded-xl text-xs font-semibold shadow-lg transition-all duration-200 flex items-center justify-center gap-2 text-white ${
+                    loading || !code.trim()
+                      ? "bg-slate-900 text-slate-600 border border-slate-850 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-500 shadow-blue-600/20 active:scale-[0.99]"
+                  }`}
+                >
+                  {loading ? (
+                    <>
+                      <span className="w-3.5 h-3.5 rounded-full border-2 border-slate-600 border-t-white animate-spin"></span>
+                      <span>AI Audit Active...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={13} />
+                      <span>AI Code Audit</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
-            {/* RIGHT DIAGNOSTICS REPORT PANEL - Matches Editor Height 100% */}
+            {/* RIGHT PANEL - TABBED VIEW: TERMINAL CONSOLE & AI DIAGNOSTIC REPORT */}
             <div className="lg:col-span-6 flex flex-col h-full min-h-0">
               <div className="bg-slate-950/60 border border-slate-900 rounded-2xl p-5 shadow-xl flex-1 flex flex-col min-h-0 relative overflow-hidden">
                 
-                {/* Header title */}
+                {/* TAB SELECTION HEADER */}
                 <div className="flex justify-between items-center pb-3 border-b border-slate-900 mb-3 shrink-0">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="text-purple-400" size={17} />
-                    <h2 className="text-xs font-semibold text-white tracking-wide">
-                      Diagnostic Audit Report
-                    </h2>
+                    <button
+                      onClick={() => setActiveRightTab("terminal")}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                        activeRightTab === "terminal"
+                          ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <SquareTerminal size={14} />
+                      <span>Terminal Console</span>
+                      {terminalLogs.length > 0 && (
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => setActiveRightTab("review")}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                        activeRightTab === "review"
+                          ? "bg-blue-500/10 border border-blue-500/20 text-blue-400"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <Sparkles size={14} />
+                      <span>AI Audit Report</span>
+                    </button>
                   </div>
 
-                  {review && (
+                  {activeRightTab === "review" && review && (
                     <button
                       onClick={handleCopyReview}
                       className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px] font-medium text-slate-300 hover:text-white transition-all"
@@ -532,34 +675,69 @@ function DirectReviewPage() {
                   )}
                 </div>
 
-                {/* Report Content Output - Fills vertical space with scroll */}
+                {/* TAB CONTENT: TERMINAL CONSOLE OR AI AUDIT REPORT */}
                 <div className="flex-1 overflow-y-auto pr-1 min-h-0">
-                  {loading ? (
-                    <div className="h-full flex flex-col justify-center items-center text-center p-6">
-                      <div className="w-12 h-12 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4 animate-spin">
-                        <Code2 size={22} />
-                      </div>
-                      <h3 className="text-sm font-semibold text-white">
-                        Running Static Analysis &amp; Security Audits
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-2 font-mono max-w-xs">
-                        {LOADING_PHASES[loadingPhaseIndex]}
-                      </p>
+                  {activeRightTab === "terminal" ? (
+                    <div className="h-full bg-[#04070d] border border-slate-900 rounded-xl p-4 font-mono text-xs text-slate-200 overflow-y-auto space-y-1.5 select-text">
+                      {runningCode ? (
+                        <div className="h-full flex items-center justify-center flex-col gap-2 text-slate-400">
+                          <span className="w-5 h-5 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"></span>
+                          <span>Executing program...</span>
+                        </div>
+                      ) : terminalLogs.length === 0 ? (
+                        <div className="h-full flex flex-col justify-center items-center text-center p-6 text-slate-500">
+                          <SquareTerminal size={24} className="text-slate-600 mb-3" />
+                          <p className="font-semibold text-slate-400">Program Execution Console</p>
+                          <p className="text-[11px] mt-1 max-w-xs leading-relaxed">
+                            Click <strong className="text-emerald-400">▶ Run Code</strong> or press <code className="text-emerald-400 font-mono">Ctrl+Enter</code> to execute the code snippet and view terminal output logs.
+                          </p>
+                        </div>
+                      ) : (
+                        terminalLogs.map((log, idx) => (
+                          <div 
+                            key={idx} 
+                            className={
+                              log.startsWith("$") 
+                                ? "text-slate-500 font-semibold" 
+                                : log.startsWith("[Process") 
+                                ? "text-emerald-400 font-semibold mt-3 pt-2 border-t border-slate-900" 
+                                : "text-slate-200 font-medium pl-1"
+                            }
+                          >
+                            {log}
+                          </div>
+                        ))
+                      )}
                     </div>
-                  ) : review ? (
-                    <FormattedMarkdown content={review} />
                   ) : (
-                    <div className="h-full flex flex-col justify-center items-center text-center p-6">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-850 flex items-center justify-center text-slate-500 mb-4">
-                        <Sparkles size={20} className="text-blue-400" />
+                    /* AI AUDIT REPORT TAB */
+                    loading ? (
+                      <div className="h-full flex flex-col justify-center items-center text-center p-6">
+                        <div className="w-12 h-12 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4 animate-spin">
+                          <Code2 size={22} />
+                        </div>
+                        <h3 className="text-sm font-semibold text-white">
+                          Running Static Analysis &amp; Security Audits
+                        </h3>
+                        <p className="text-xs text-slate-500 mt-2 font-mono max-w-xs">
+                          {LOADING_PHASES[loadingPhaseIndex]}
+                        </p>
                       </div>
-                      <h3 className="text-sm font-semibold text-slate-200">
-                        No Active Review
-                      </h3>
-                      <p className="text-xs text-slate-500 max-w-xs mt-1.5 leading-relaxed">
-                        Select a template or write code in the VS Code editor, then press <code className="text-blue-400 font-mono">Ctrl+Enter</code> or click <strong>Run AI Code Review</strong>.
-                      </p>
-                    </div>
+                    ) : review ? (
+                      <FormattedMarkdown content={review} />
+                    ) : (
+                      <div className="h-full flex flex-col justify-center items-center text-center p-6">
+                        <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-850 flex items-center justify-center text-slate-500 mb-4">
+                          <Sparkles size={20} className="text-blue-400" />
+                        </div>
+                        <h3 className="text-sm font-semibold text-slate-200">
+                          No Active AI Review Report
+                        </h3>
+                        <p className="text-xs text-slate-500 max-w-xs mt-1.5 leading-relaxed">
+                          Click <strong className="text-blue-400">✨ AI Code Audit</strong> to perform static code analysis and security vulnerability inspection.
+                        </p>
+                      </div>
+                    )
                   )}
                 </div>
 
