@@ -305,10 +305,10 @@ function DirectReviewPage() {
       const logs = [`$ Executing ${fileName} on server process runner...`];
 
       if (stdout && stdout.trim()) {
-        logs.push(stdout.trim());
+        stdout.trim().split(/\r?\n/).forEach((l) => logs.push(l));
       }
       if (stderr && stderr.trim()) {
-        logs.push(`⚠️ Server Log / Error:\n${stderr.trim()}`);
+        stderr.trim().split(/\r?\n/).forEach((l) => logs.push(`⚠️ ${l}`));
       }
       if ((!stdout || !stdout.trim()) && (!stderr || !stderr.trim())) {
         logs.push("[Program executed successfully with no stdout output]");
@@ -676,13 +676,15 @@ function DirectReviewPage() {
                         terminalLogs.map((log, idx) => (
                           <div 
                             key={idx} 
-                            className={
+                            className={`whitespace-pre-wrap break-all ${
                               log.startsWith("$") 
                                 ? "text-slate-500 font-semibold" 
                                 : log.startsWith("[Process") 
                                 ? "text-emerald-400 font-semibold mt-3 pt-2 border-t border-slate-900" 
+                                : log.startsWith("⚠️")
+                                ? "text-rose-400 font-medium"
                                 : "text-slate-200 font-medium pl-1"
-                            }
+                            }`}
                           >
                             {log}
                           </div>
