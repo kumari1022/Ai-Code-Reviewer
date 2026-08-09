@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { ClipLoader } from "react-spinners";
-import { Send, Sparkles, User, Terminal, Code2 } from "lucide-react";
+import { Send, User, Terminal, Code2, Cpu } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import FormattedMarkdown from "../components/FormattedMarkdown";
@@ -77,7 +77,7 @@ function ChatPage() {
       <Sidebar />
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <Navbar title="AI Coding Assistant" />
+        <Navbar title="Senior Engineering Copilot" />
 
         {/* MESSAGES CONSOLE */}
         <div className="flex-1 overflow-y-auto p-6 md:p-8 flex flex-col gap-6">
@@ -86,11 +86,11 @@ function ChatPage() {
             {messages.length === 0 && (
               <div className="flex-1 flex flex-col items-center justify-center text-center py-16">
                 <div className="w-14 h-14 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-5">
-                  <Sparkles size={24} />
+                  <Code2 size={24} />
                 </div>
-                <h2 className="text-xl font-bold text-white tracking-tight">Code Review &amp; Optimization Assistant</h2>
+                <h2 className="text-xl font-bold text-white tracking-tight">Senior Engineering Copilot</h2>
                 <p className="text-slate-400 text-xs sm:text-sm mt-2 max-w-md leading-relaxed">
-                  Ask targeted questions about Java refactoring, vulnerability remediation, design patterns, or concurrency.
+                  Ask targeted questions about multi-language refactoring, vulnerability remediation, design patterns, or concurrency.
                 </p>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8 max-w-lg w-full">
@@ -98,29 +98,25 @@ function ChatPage() {
                     onClick={() => setMessage("How do I eliminate NullPointerException using Optional in Java?")}
                     className="p-3.5 bg-slate-950/60 border border-slate-900 rounded-xl text-xs text-left text-slate-300 hover:border-slate-800 hover:text-white transition-all duration-200"
                   >
-                    💡 <span className="font-semibold text-white">Avoid NullPointerExceptions</span>
-                    <p className="text-[11px] text-slate-500 mt-1">Refactor raw null checks with Optional API</p>
+                    💡 <strong className="text-white">Java:</strong> Optional patterns
                   </button>
                   <button 
-                    onClick={() => setMessage("How do I fix SQL Injection risks with PreparedStatement?")}
+                    onClick={() => setMessage("What are PEP 8 type hints best practices in Python?")}
                     className="p-3.5 bg-slate-950/60 border border-slate-900 rounded-xl text-xs text-left text-slate-300 hover:border-slate-800 hover:text-white transition-all duration-200"
                   >
-                    🛡️ <span className="font-semibold text-white">Remediate SQL Injection</span>
-                    <p className="text-[11px] text-slate-500 mt-1">Convert raw query concatenation to parameterized statements</p>
+                    🐍 <strong className="text-white">Python:</strong> Type hints &amp; PEP 8
                   </button>
                   <button 
-                    onClick={() => setMessage("What are standard Spring Security JWT authorization best practices?")}
+                    onClick={() => setMessage("How to prevent memory leaks in C++ using std::unique_ptr?")}
                     className="p-3.5 bg-slate-950/60 border border-slate-900 rounded-xl text-xs text-left text-slate-300 hover:border-slate-800 hover:text-white transition-all duration-200"
                   >
-                    🔑 <span className="font-semibold text-white">Spring Security JWT</span>
-                    <p className="text-[11px] text-slate-500 mt-1">Configure stateless session authentication</p>
+                    ⚙️ <strong className="text-white">C++:</strong> Smart Pointers
                   </button>
                   <button 
-                    onClick={() => setMessage("How to optimize HikariCP connection pool settings?")}
+                    onClick={() => setMessage("Explain async/await error handling in Node.js.")}
                     className="p-3.5 bg-slate-950/60 border border-slate-900 rounded-xl text-xs text-left text-slate-300 hover:border-slate-800 hover:text-white transition-all duration-200"
                   >
-                    ⚡ <span className="font-semibold text-white">HikariCP Tuning</span>
-                    <p className="text-[11px] text-slate-500 mt-1">Optimize database pool size and idle timeouts</p>
+                    ⚡ <strong className="text-white">JS/TS:</strong> Async Error Handling
                   </button>
                 </div>
               </div>
@@ -129,70 +125,70 @@ function ChatPage() {
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={`flex gap-3 max-w-[85%] ${
-                  msg.sender === "user" ? "ml-auto flex-row-reverse" : "mr-auto"
-                }`}
+                className={`flex gap-4 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
               >
-                {/* Avatar */}
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${
-                  msg.sender === "user"
-                    ? "bg-blue-600 border-blue-500 text-white"
-                    : "bg-slate-900 border-slate-800 text-purple-400"
-                }`}>
-                  {msg.sender === "user" ? <User size={15} /> : <Sparkles size={15} />}
-                </div>
-
-                {/* Message Box */}
+                {msg.sender === "ai" && (
+                  <div className="w-8 h-8 rounded-xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 mt-1">
+                    <Cpu size={16} />
+                  </div>
+                )}
+                
                 <div
-                  className={`px-4 py-3 rounded-2xl text-xs sm:text-sm leading-relaxed ${
+                  className={`p-4 md:p-5 rounded-2xl max-w-2xl text-xs sm:text-sm leading-relaxed border ${
                     msg.sender === "user"
-                      ? "bg-blue-600 text-white rounded-tr-none font-medium"
-                      : "bg-slate-950/60 border border-slate-900 text-slate-200 rounded-tl-none w-full"
+                      ? "bg-blue-600 border-blue-500 text-white rounded-tr-none shadow-md shadow-blue-600/10"
+                      : "bg-slate-950/80 border-slate-900 text-slate-200 rounded-tl-none shadow-lg"
                   }`}
                 >
-                  {msg.sender === "user" ? (
-                    <p className="whitespace-pre-wrap">{msg.text}</p>
-                  ) : (
+                  {msg.sender === "ai" ? (
                     <FormattedMarkdown content={msg.text} />
+                  ) : (
+                    msg.text
                   )}
                 </div>
+
+                {msg.sender === "user" && (
+                  <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0 mt-1">
+                    <User size={16} />
+                  </div>
+                )}
               </div>
             ))}
 
             {loading && (
-              <div className="flex gap-3 mr-auto max-w-[80%]">
-                <div className="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 text-purple-400 flex items-center justify-center shrink-0">
-                  <Sparkles size={15} />
+              <div className="flex gap-4 justify-start">
+                <div className="w-8 h-8 rounded-xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+                  <Cpu size={16} />
                 </div>
-                <div className="px-4 py-3 rounded-2xl bg-slate-950/60 border border-slate-900 rounded-tl-none flex items-center justify-center">
-                  <ClipLoader color="#a855f7" size={16} />
+                <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-900 rounded-tl-none flex items-center gap-3">
+                  <ClipLoader size={16} color="#3b82f6" />
+                  <span className="text-xs text-slate-400 font-mono">Engineering Copilot processing query...</span>
                 </div>
               </div>
             )}
-            
+
             <div ref={chatEndRef} />
           </div>
         </div>
 
-        {/* INPUT PANEL */}
-        <div className="p-4 sm:p-6 bg-[#030712] border-t border-slate-900 flex justify-center sticky bottom-0 z-40">
-          <div className="max-w-4xl w-full flex gap-3 relative">
-            <input
-              type="text"
-              placeholder="Ask assistant about bug fixes, refactoring, or concurrency..."
+        {/* INPUT PROMPT */}
+        <div className="p-4 md:p-6 bg-slate-950 border-t border-slate-900 shrink-0">
+          <div className="max-w-4xl w-full mx-auto relative">
+            <textarea
+              rows={2}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
-              disabled={loading}
-              className="flex-1 bg-slate-950/60 border border-slate-900 focus:border-blue-500/50 rounded-xl px-4 py-3 outline-none text-xs sm:text-sm text-white focus:ring-1 focus:ring-blue-500/20 transition-all placeholder:text-slate-500"
+              placeholder="Ask senior copilot about Java, Python, JavaScript, C++, Go, or Rust refactoring..."
+              className="w-full bg-[#060a12] border border-slate-850 rounded-2xl p-4 pr-14 text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 outline-none focus:border-blue-500/50 resize-none"
             />
             <button
               onClick={sendMessage}
               disabled={loading || !message.trim()}
-              className={`px-5 rounded-xl text-white flex items-center justify-center gap-1.5 transition-all text-xs font-semibold ${
-                !message.trim() || loading
-                  ? "bg-slate-900 border border-slate-850 text-slate-600 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-500 shadow-md shadow-blue-600/10 active:scale-[0.98]"
+              className={`absolute right-3.5 bottom-5 p-2.5 rounded-xl text-white transition-all duration-200 ${
+                loading || !message.trim()
+                  ? "bg-slate-900 text-slate-600 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-500 shadow-md shadow-blue-600/20"
               }`}
             >
               <Send size={15} />
