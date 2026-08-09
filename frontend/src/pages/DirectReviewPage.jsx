@@ -24,119 +24,58 @@ import { API_URL } from "../config";
 const CODE_TEMPLATES = [
   {
     name: "☕ Java",
-    fileName: "OrderProcessingService.java",
-    code: `package com.app.service;
-
-import java.math.BigDecimal;
-import java.util.Objects;
-import java.util.logging.Logger;
-
-public class OrderProcessingService {
-
-    private static final Logger LOGGER = Logger.getLogger(OrderProcessingService.class.getName());
-
-    public BigDecimal calculateDiscountedTotal(BigDecimal originalTotal, double discountPercentage) {
-        Objects.requireNonNull(originalTotal, "Original total amount cannot be null");
-        
-        if (discountPercentage < 0.0 || discountPercentage > 100.0) {
-            throw new IllegalArgumentException("Discount percentage must be between 0.0 and 100.0");
-        }
-        
-        BigDecimal discountFactor = BigDecimal.valueOf(1.0 - (discountPercentage / 100.0));
-        BigDecimal finalPrice = originalTotal.multiply(discountFactor);
-        
-        LOGGER.info(() -> String.format("Processed discount: Original=%s, Final=%s", originalTotal, finalPrice));
-        return finalPrice;
+    fileName: "Main.java",
+    code: `public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
     }
 }`
   },
   {
     name: "🐍 Python",
-    fileName: "DataPipeline.py",
-    code: `import json
-import logging
-from typing import Dict, Any, Optional
+    fileName: "main.py",
+    code: `def main():
+    print("Hello, World!")
 
-logging.basicConfig(level=logging.INFO)
-
-class DataIngestionPipeline:
-    def __init__(self, config_path: str):
-        self.config_path = config_path
-
-    def process_payload(self, raw_data: str) -> Optional[Dict[str, Any]]:
-        # VULNERABLE: Bare except block hides json parsing errors & system interrupts!
-        try:
-            payload = json.loads(raw_data)
-            if "user_id" not in payload:
-                raise ValueError("Missing mandatory field: user_id")
-            
-            # Anti-pattern: Modifying global state or unhandled file operations
-            file = open(self.config_path, "a")
-            file.write(json.dumps(payload) + "\n")
-            # Note: File is left unclosed if an exception occurs before file.close()
-            file.close()
-            return payload
-        except:
-            print("Error occurred while processing payload")
-            return None`
+if __name__ == "__main__":
+    main()`
   },
   {
     name: "⚡ JavaScript",
-    fileName: "AuthMiddleware.js",
-    code: `const jwt = require("jsonwebtoken");
-
-function verifyToken(req, res, next) {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1];
-
-    if (!token) {
-        return res.status(401).json({ error: "Access Denied: No Token Provided" });
-    }
-
-    // VULNERABLE: Hardcoded JWT secret key & synchronous token verification!
-    jwt.verify(token, "SECRET_KEY_123", (err, user) => {
-        if (err) {
-            // Anti-pattern: Exposing internal error stack traces to client
-            return res.status(403).json({ error: err.message, stack: err.stack });
-        }
-        req.user = user;
-        next();
-    });
+    fileName: "main.js",
+    code: `function main() {
+    console.log("Hello, World!");
 }
 
-module.exports = { verifyToken };`
+main();`
   },
   {
     name: "⚙️ C++",
-    fileName: "MemoryBufferPool.cpp",
+    fileName: "main.cpp",
     code: `#include <iostream>
-#include <cstring>
 
-class MemoryBuffer {
-private:
-    char* data;
-    size_t size;
+int main() {
+    std::cout << "Hello, World!" << std::endl;
+    return 0;
+}`
+  },
+  {
+    name: "🐹 Go",
+    fileName: "main.go",
+    code: `package main
 
-public:
-    MemoryBuffer(size_t sz) : size(sz) {
-        // VULNERABLE: Raw pointer allocation without smart pointer std::unique_ptr
-        data = new char[sz];
-    }
+import "fmt"
 
-    void writeString(const char* str) {
-        // VULNERABLE: Buffer overflow risk! strcpy does not check destination size bound
-        strcpy(data, str);
-    }
-
-    void printBuffer() {
-        std::cout << "Buffer Content: " << data << std::endl;
-    }
-
-    // VULNERABLE: Destructor missing delete[] data causes severe memory leak!
-    ~MemoryBuffer() {
-        // missing: delete[] data;
-    }
-};`
+func main() {
+    fmt.Println("Hello, World!")
+}`
+  },
+  {
+    name: "🦀 Rust",
+    fileName: "main.rs",
+    code: `fn main() {
+    println!("Hello, World!");
+}`
   }
 ];
 
