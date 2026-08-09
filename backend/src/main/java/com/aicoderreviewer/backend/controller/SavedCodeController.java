@@ -7,6 +7,7 @@ import com.aicoderreviewer.backend.service.SavedCodeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,49 +24,50 @@ public class SavedCodeController {
     @PostMapping
     public ResponseEntity<SavedCodeDTO> saveCode(
             @RequestBody SavedCodeRequest request,
-            Authentication authentication,
             @RequestHeader(value = "Authorization", required = false) String authHeader
     ) {
-        String email = extractEmail(authentication, authHeader);
+        String email = extractEmail(authHeader);
         return ResponseEntity.ok(savedCodeService.saveCode(email, request));
     }
 
     @GetMapping
     public ResponseEntity<List<SavedCodeDTO>> getUserSavedCodes(
-            Authentication authentication,
             @RequestHeader(value = "Authorization", required = false) String authHeader
     ) {
-        String email = extractEmail(authentication, authHeader);
+        String email = extractEmail(authHeader);
         return ResponseEntity.ok(savedCodeService.getUserSavedCodes(email));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<SavedCodeDTO> getSavedCodeById(
             @PathVariable Long id,
-            Authentication authentication,
             @RequestHeader(value = "Authorization", required = false) String authHeader
     ) {
-        String email = extractEmail(authentication, authHeader);
+        String email = extractEmail(authHeader);
         return ResponseEntity.ok(savedCodeService.getSavedCodeById(id, email));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSavedCode(
             @PathVariable Long id,
-            Authentication authentication,
             @RequestHeader(value = "Authorization", required = false) String authHeader
     ) {
-        String email = extractEmail(authentication, authHeader);
+        String email = extractEmail(authHeader);
         savedCodeService.deleteSavedCode(id, email);
         return ResponseEntity.noContent().build();
     }
 
-    private String extractEmail(Authentication authentication, String authHeader) {
-        if (authentication != null && authentication.getName() != null 
-                && !authentication.getName().isBlank() 
-                && !"anonymousUser".equals(authentication.getName())) {
-            return authentication.getName();
+    private String extractEmail(String authHeader) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getName() != null && !auth.getName().isBlank() 
+                    && !"anonymousUser".equalsIgnoreCase(auth.getName())) {
+                return auth.getName();
+            }
+        } catch (Exception e) {
+            // Ignore security context lookup failure
         }
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             try {
                 String token = authHeader.substring(7);
