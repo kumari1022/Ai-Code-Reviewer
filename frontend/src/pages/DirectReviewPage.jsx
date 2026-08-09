@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import { 
   Terminal, 
   Sparkles, 
@@ -13,19 +11,17 @@ import {
   Trash2, 
   Play, 
   Layers, 
-  Cpu, 
-  CheckCircle2,
-  Upload
+  Upload,
+  Code2
 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import FormattedMarkdown from "../components/FormattedMarkdown";
 import { API_URL } from "../config";
 
-// Multi-language code templates for interactive live audits
 const CODE_TEMPLATES = [
   {
-    name: "☕ Java: Order Service (Clean Architecture)",
+    name: "☕ Java",
     fileName: "OrderProcessingService.java",
     code: `package com.app.service;
 
@@ -53,7 +49,7 @@ public class OrderProcessingService {
 }`
   },
   {
-    name: "🐍 Python: Data Ingestion (Resource & GIL Audit)",
+    name: "🐍 Python",
     fileName: "DataPipeline.py",
     code: `import json
 import logging
@@ -83,7 +79,7 @@ class DataIngestionPipeline:
             return None`
   },
   {
-    name: "⚡ JavaScript: Auth Middleware (Async & Security Audit)",
+    name: "⚡ JavaScript",
     fileName: "AuthMiddleware.js",
     code: `const jwt = require("jsonwebtoken");
 
@@ -109,7 +105,7 @@ function verifyToken(req, res, next) {
 module.exports = { verifyToken };`
   },
   {
-    name: "⚙️ C++: Memory Buffer (Raw Pointer & Leak Audit)",
+    name: "⚙️ C++",
     fileName: "MemoryBufferPool.cpp",
     code: `#include <iostream>
 #include <cstring>
@@ -153,13 +149,17 @@ const LOADING_PHASES = [
 
 function DirectReviewPage() {
   const navigate = useNavigate();
-  const [code, setCode] = useState("");
-  const [fileName, setFileName] = useState("Sandbox.java");
+  const [code, setCode] = useState(CODE_TEMPLATES[0].code);
+  const [fileName, setFileName] = useState(CODE_TEMPLATES[0].fileName);
   const [review, setReview] = useState("");
   const [loading, setLoading] = useState(false);
   const [copiedReview, setCopiedReview] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [loadingPhaseIndex, setLoadingPhaseIndex] = useState(0);
+
+  const fileInputRef = useRef(null);
+  const editorContainerRef = useRef(null);
+  const textareaRef = useRef(null);
 
   // Validate JWT session token on mount
   useEffect(() => {
@@ -183,19 +183,23 @@ function DirectReviewPage() {
     }
   }, [navigate]);
 
-  const fileInputRef = useRef(null);
-  const lineNumbersRef = useRef(null);
-  const textareaRef = useRef(null);
+  // Tab key indentation support inside textarea
+  const handleKeyDown = (e) => {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const start = e.target.selectionStart;
+      const end = e.target.selectionEnd;
 
-  // Dynamically auto-expand editor height based on lines typed (default: 3 lines minHeight)
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      const minHeight = 3 * 24 + 32; // 104px (3 lines * 24px line-height + 32px padding)
-      const newHeight = Math.max(textareaRef.current.scrollHeight, minHeight);
-      textareaRef.current.style.height = `${newHeight}px`;
+      const newCode = code.substring(0, start) + "    " + code.substring(end);
+      setCode(newCode);
+
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.selectionStart = textareaRef.current.selectionEnd = start + 4;
+        }
+      }, 0);
     }
-  }, [code]);
+  };
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -210,7 +214,6 @@ function DirectReviewPage() {
     e.target.value = "";
   };
 
-  // Rotate loading phase labels while fetching to keep user engaged
   useEffect(() => {
     let interval;
     if (loading) {
@@ -250,7 +253,7 @@ function DirectReviewPage() {
 
   const triggerReview = async () => {
     if (!code.trim()) {
-      alert("Please write or paste some Java code before triggering an analysis.");
+      alert("Please write or paste source code before triggering an analysis.");
       return;
     }
 
@@ -273,7 +276,6 @@ function DirectReviewPage() {
         }
       );
 
-      // IDEController response format returns IDEResponse containing a "review" attribute
       if (response.data && response.data.review) {
         setReview(response.data.review);
       } else {
@@ -287,46 +289,44 @@ function DirectReviewPage() {
     }
   };
 
-  // Generate dynamic line numbers sidebar array
-  const lineCount = Math.max(code.split("\n").length, 1);
+  // Generate dynamic line numbers
+  const lines = code.split("\n");
+  const lineCount = Math.max(lines.length, 1);
   const lineNumbers = Array.from({ length: lineCount }, (_, i) => i + 1);
 
   return (
-    <div className="flex bg-[#030712] min-h-screen text-slate-100 overflow-hidden mesh-gradient">
-      {/* GLOBAL SIDEBAR */}
+    <div className="flex bg-[#030712] min-h-screen text-slate-100 overflow-hidden font-sans">
       <Sidebar />
 
       <div className="flex-1 flex flex-col h-screen overflow-y-auto">
-        {/* NAVBAR */}
-        <Navbar title="Direct Code Review" />
+        <Navbar title="Live Code Sandbox & Audit Studio" />
 
-        {/* WORKSPACE AREA */}
         <div className="p-6 md:p-8 w-full max-w-7xl mx-auto flex flex-col gap-6">
           
-          {/* OVERVIEW INFO PANEL */}
+          {/* HEADER ROW */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
-                <Terminal className="text-blue-500" size={28} />
-                <span>Direct Sandbox Review</span>
+              <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
+                <Terminal className="text-blue-500" size={24} />
+                <span>Interactive Code Editor</span>
               </h1>
-              <p className="text-slate-400 mt-1.5 text-sm">
-                Paste raw components directly into our virtual IDE to audit code quality patterns, performance blocks, and safety concerns.
+              <p className="text-slate-400 mt-1 text-xs sm:text-sm">
+                Paste or edit code directly in the IDE editor to trigger instant multi-language Groq AI diagnostic reviews.
               </p>
             </div>
 
-            {/* QUICK EXAMPLES DROPDOWN */}
-            <div className="flex items-center gap-2.5">
-              <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider flex items-center gap-1.5 shrink-0">
-                <Layers size={14} className="text-slate-400" />
-                Load Template:
+            {/* TEMPLATES */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400 font-medium flex items-center gap-1 shrink-0">
+                <Layers size={14} className="text-slate-500" />
+                Templates:
               </span>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {CODE_TEMPLATES.map((tmpl, idx) => (
                   <button
                     key={idx}
                     onClick={() => loadTemplate(tmpl)}
-                    className="px-3 py-1.5 rounded-lg bg-slate-900/80 hover:bg-blue-950/40 text-slate-300 hover:text-blue-400 border border-slate-800 hover:border-blue-900/30 text-xs font-medium transition-all"
+                    className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-850 hover:border-slate-750 text-xs font-medium transition-all"
                   >
                     {tmpl.name}
                   </button>
@@ -335,221 +335,181 @@ function DirectReviewPage() {
             </div>
           </div>
 
-          {/* DUAL WORKSPACE SPLIT (EDITOR VS DIAGNOSTICS) */}
+          {/* DUAL WORKSPACE SPLIT */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
             {/* LEFT MOCK IDE EDITOR PANEL */}
             <div className="lg:col-span-6 flex flex-col gap-4">
-              <div className="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 p-[1.5px] rounded-[32px] shadow-2xl shadow-blue-500/5">
-                <div className="bg-[#090d16]/95 rounded-[30px] overflow-hidden">
-                  
-                  {/* Editor Header Controls */}
-                  <div className="bg-[#0c1220] px-5 py-4 flex justify-between items-center border-b border-slate-900/60 select-none">
-                    <div className="flex items-center gap-2 select-none">
-                      <span className="editor-dot bg-red-500/80"></span>
-                      <span className="editor-dot bg-yellow-500/80"></span>
-                      <span className="editor-dot bg-green-500/80"></span>
-                    </div>
-                    
-                    {/* Filename Input */}
-                    <div className="flex items-center gap-2 bg-[#090d16] px-3.5 py-1.5 rounded-xl border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.15)]">
-                      <FileCode size={14} className="text-indigo-400" />
-                      <input
-                        type="text"
-                        value={fileName}
-                        onChange={(e) => setFileName(e.target.value)}
-                        placeholder="Filename (e.g. App.java)"
-                        style={{ background: 'transparent', border: 'none', outline: 'none', boxShadow: 'none' }}
-                        className="text-slate-100 font-semibold font-mono text-xs w-36 text-center focus:ring-0 focus:text-white focus:outline-none appearance-none"
-                        spellCheck="false"
-                      />
-                    </div>
-
-                    {/* Utility Controls */}
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileUpload}
-                        className="hidden"
-                        accept=".java,.txt,.js,.py,.cpp,.c,.go,.ts"
-                      />
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        title="Upload file into editor"
-                        className="p-2 rounded-xl bg-slate-900 hover:bg-emerald-500/10 border border-slate-850 hover:border-emerald-500/40 text-slate-400 hover:text-emerald-400 transition-colors flex items-center justify-center animate-pulse"
-                      >
-                        <Upload size={14} />
-                      </button>
-                      <button
-                        onClick={handleCopyCode}
-                        disabled={!code}
-                        title="Copy code"
-                        className="p-2 rounded-xl bg-slate-900 hover:bg-blue-500/10 border border-slate-850 hover:border-blue-500/40 text-slate-400 hover:text-blue-400 transition-colors"
-                      >
-                        {copiedCode ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
-                      </button>
-                      <button
-                        onClick={handleClear}
-                        disabled={!code && fileName === "Sandbox.java"}
-                        title="Clear code editor"
-                        className="p-2 rounded-xl bg-slate-900 hover:bg-rose-500/10 border border-slate-850 hover:border-rose-500/40 text-slate-450 hover:text-rose-400 transition-colors"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
+              <div className="bg-[#080d1a] border border-slate-850 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+                
+                {/* Editor Header Bar */}
+                <div className="bg-[#0d1425] px-4 py-3 flex justify-between items-center border-b border-slate-850 select-none">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500/80"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></span>
                   </div>
-
-                  {/* Virtual Codearea Container with Dynamic Auto-Expanding Textarea */}
-                  <div className="flex bg-[#060a12] p-0 relative min-h-[104px]">
-                    {/* Dynamic Line Numbers */}
-                    <div 
-                      ref={lineNumbersRef}
-                      className="select-none text-right pr-4 py-4 text-indigo-400/80 font-bold font-mono text-[14px] leading-6 border-r border-indigo-950/40 w-14 shrink-0 bg-[#03050a] overflow-hidden select-none h-auto"
-                    >
-                      {lineNumbers.map((num) => (
-                        <div key={num} className="h-6">{num}</div>
-                      ))}
-                    </div>
-
-                    {/* Highly-Legible Auto-Expanding Monospace Textarea */}
-                    <textarea
-                      ref={textareaRef}
-                      value={code}
-                      onChange={(e) => setCode(e.target.value)}
-                      placeholder="// Write or paste Java source code here...&#10;// Or click one of the load templates above to test instantly!"
-                      style={{ background: 'transparent', border: 'none', outline: 'none', boxShadow: 'none' }}
-                      className="flex-1 bg-[#060a12] text-[#a5d6ff] placeholder-slate-650 focus:text-white caret-blue-400 focus:outline-none resize-none border-0 p-4 font-mono text-[14px] leading-6 focus:ring-0 focus:border-0 appearance-none shadow-none overflow-hidden"
+                  
+                  {/* Filename Input */}
+                  <div className="flex items-center gap-2 bg-[#080d1a] px-3 py-1 rounded-lg border border-slate-800">
+                    <FileCode size={14} className="text-blue-400" />
+                    <input
+                      type="text"
+                      value={fileName}
+                      onChange={(e) => setFileName(e.target.value)}
+                      placeholder="Filename (e.g. Main.java)"
+                      className="bg-transparent text-slate-200 font-mono text-xs w-44 outline-none focus:text-white"
                       spellCheck="false"
                     />
                   </div>
+
+                  {/* Quick Controls */}
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      accept=".java,.py,.js,.jsx,.ts,.tsx,.cpp,.c,.h,.hpp,.go,.rs,.txt"
+                    />
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      title="Upload file into editor"
+                      className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition-all"
+                    >
+                      <Upload size={14} />
+                    </button>
+                    <button
+                      onClick={handleCopyCode}
+                      disabled={!code}
+                      title="Copy code"
+                      className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition-all"
+                    >
+                      {copiedCode ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                    </button>
+                    <button
+                      onClick={handleClear}
+                      disabled={!code}
+                      title="Clear editor"
+                      className="p-1.5 rounded-lg bg-slate-900 hover:bg-red-500/10 border border-slate-800 hover:border-red-500/20 text-slate-400 hover:text-red-400 transition-all"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* COMFORTABLE SCROLLABLE IDE EDITOR AREA */}
+                <div 
+                  ref={editorContainerRef}
+                  className="flex bg-[#060a12] relative h-[480px] overflow-hidden"
+                >
+                  {/* Line Numbers Sidebar */}
+                  <div className="select-none text-right pr-3.5 py-3.5 text-slate-600 font-mono text-xs leading-6 border-r border-slate-900 w-12 shrink-0 bg-[#04070d] overflow-hidden">
+                    {lineNumbers.map((num) => (
+                      <div key={num} className="h-6">{num}</div>
+                    ))}
+                  </div>
+
+                  {/* Textarea */}
+                  <textarea
+                    ref={textareaRef}
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="// Paste or write source code here..."
+                    className="flex-1 bg-[#060a12] text-blue-100 placeholder:text-slate-600 caret-blue-400 outline-none resize-none p-3.5 font-mono text-xs leading-6 selection:bg-blue-500/30 overflow-y-auto"
+                    spellCheck="false"
+                  />
+                </div>
+
+                {/* EDITOR STATUS BAR */}
+                <div className="bg-[#0d1425] px-4 py-2 border-t border-slate-850 flex justify-between items-center text-[11px] text-slate-500 font-mono select-none">
+                  <div className="flex items-center gap-3">
+                    <span>{lineCount} lines</span>
+                    <span>{code.length} chars</span>
+                  </div>
+                  <span>UTF-8</span>
                 </div>
               </div>
 
-              {/* ACTION INITIATOR */}
+              {/* RUN ACTION BUTTON */}
               <button
                 onClick={triggerReview}
                 disabled={loading || !code.trim()}
-                className={`w-full py-4 rounded-2xl text-sm font-bold shadow-lg transition-all duration-300 flex items-center justify-center gap-2.5 text-white ${
+                className={`w-full py-3.5 rounded-xl text-xs font-semibold shadow-lg transition-all duration-200 flex items-center justify-center gap-2 text-white ${
                   loading || !code.trim()
-                    ? "bg-slate-900/60 text-slate-500 border border-slate-900 cursor-not-allowed"
-                    : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-blue-500/10 hover:shadow-blue-500/20 hover:scale-[1.005]"
+                    ? "bg-slate-900 text-slate-600 border border-slate-850 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-500 shadow-blue-600/20 active:scale-[0.99]"
                 }`}
               >
                 {loading ? (
                   <>
-                    <span className="w-4 h-4 rounded-full border-2 border-slate-600 border-t-slate-350 animate-spin"></span>
-                    <span>AI Analyser Active...</span>
+                    <span className="w-4 h-4 rounded-full border-2 border-slate-600 border-t-white animate-spin"></span>
+                    <span>Analyzing Codebase...</span>
                   </>
                 ) : (
                   <>
-                    <Play size={15} fill="currentColor" />
-                    <span>Run AI Diagnostic Review</span>
+                    <Play size={14} fill="currentColor" />
+                    <span>Run AI Code Review</span>
                   </>
                 )}
               </button>
             </div>
 
-            {/* RIGHT GROQ DIAGNOSTICS REPORT PANEL */}
+            {/* RIGHT DIAGNOSTICS REPORT PANEL */}
             <div className="lg:col-span-6">
-              <div className="bg-slate-950/45 backdrop-blur-md border border-slate-900 rounded-3xl p-6 md:p-8 shadow-2xl min-h-[466px] flex flex-col relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/[0.015] rounded-full blur-[60px] pointer-events-none"></div>
-
+              <div className="bg-slate-950/60 border border-slate-900 rounded-2xl p-6 shadow-xl h-[575px] flex flex-col relative overflow-hidden">
+                
                 {/* Header title */}
-                <div className="flex justify-between items-center pb-4 border-b border-slate-900 mb-6">
-                  <div className="flex items-center gap-2.5">
+                <div className="flex justify-between items-center pb-3 border-b border-slate-900 mb-4 shrink-0">
+                  <div className="flex items-center gap-2">
                     <Sparkles className="text-purple-400" size={18} />
-                    <h2 className="text-base font-bold text-white tracking-wide">
-                      Groq Diagnostics Feedback
+                    <h2 className="text-sm font-semibold text-white tracking-wide">
+                      Diagnostic Audit Report
                     </h2>
                   </div>
 
-                  {review && !loading && (
+                  {review && (
                     <button
                       onClick={handleCopyReview}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-850 text-xs font-semibold text-slate-300 hover:text-white border border-slate-850 transition-all"
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px] font-medium text-slate-300 hover:text-white transition-all"
                     >
-                      {copiedReview ? (
-                        <>
-                          <Check size={12} className="text-emerald-500" />
-                          <span className="text-emerald-400">Copied</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy size={12} />
-                          <span>Copy Report</span>
-                        </>
-                      )}
+                      {copiedReview ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                      <span>{copiedReview ? "Copied" : "Copy Report"}</span>
                     </button>
                   )}
                 </div>
 
-                {/* Loading State Container */}
-                {loading ? (
-                  <div className="flex-1 flex flex-col items-center justify-center py-20 text-center gap-5">
-                    <div className="relative">
-                      {/* Outer spinning ring */}
-                      <span className="w-16 h-16 rounded-full border-2 border-slate-900 border-t-blue-500 border-b-indigo-500 animate-spin absolute -left-8 -top-8"></span>
-                      {/* Inner pulsing chip */}
-                      <div className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-blue-400 animate-pulse relative z-10">
-                        <Cpu size={22} className="animate-spin-slow" />
+                {/* Report Content Output */}
+                <div className="flex-1 overflow-y-auto pr-1">
+                  {loading ? (
+                    <div className="h-full flex flex-col justify-center items-center text-center p-6">
+                      <div className="w-12 h-12 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4 animate-spin">
+                        <Code2 size={22} />
                       </div>
-                    </div>
-
-                    <div className="mt-4 flex flex-col gap-2">
-                      <h3 className="text-sm font-bold text-slate-300">
-                        Compiling Dynamic Diagnostic Analysis
+                      <h3 className="text-sm font-semibold text-white">
+                        Running Static Analysis &amp; Security Audits
                       </h3>
-                      <p className="text-xs text-slate-500 font-mono tracking-wide animate-pulse h-4 max-w-sm mx-auto">
+                      <p className="text-xs text-slate-500 mt-2 font-mono max-w-xs">
                         {LOADING_PHASES[loadingPhaseIndex]}
                       </p>
                     </div>
-                  </div>
-                ) : review ? (
-                  /* Report Content Render Output (or Connection Starvation Error alert) */
-                  review.includes("temporarily unavailable") || review.includes("Failure") ? (
-                    <div className="flex-1 flex flex-col justify-center items-center text-center p-6 bg-rose-950/20 border border-rose-500/20 rounded-3xl my-auto animate-pulse">
-                      <AlertCircle className="text-rose-400 mb-4" size={36} />
-                      <h3 className="text-sm font-bold text-rose-200 uppercase tracking-wider">AI Diagnostics Offline</h3>
-                      <p className="text-xs text-slate-400 mt-3 max-w-sm leading-relaxed">
-                        The Groq AI service connection was temporarily reset due to thread starvation or clock skew. Your local virtual editor is fully online. Please click below to retry the analysis.
-                      </p>
-                      <button
-                        onClick={triggerReview}
-                        className="mt-6 px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 hover:border-rose-500/50 rounded-xl text-xs font-bold text-rose-300 tracking-wide transition-all duration-300"
-                      >
-                        Retry AI Diagnostics
-                      </button>
-                    </div>
+                  ) : review ? (
+                    <FormattedMarkdown content={review} />
                   ) : (
-                    <div className="overflow-y-auto max-h-[480px] pr-2">
-                      <FormattedMarkdown content={review} />
-                    </div>
-                  )
-                ) : (
-                  /* Empty Welcome Instructions state */
-                  <div className="flex-1 flex flex-col justify-center items-center text-center p-4">
-                    <div className="w-14 h-14 rounded-2xl bg-slate-900/65 border border-slate-850 flex items-center justify-center text-slate-500 mb-5 shadow-inner">
-                      <Sparkles size={22} className="text-slate-400" />
-                    </div>
-                    <h3 className="text-base font-bold text-slate-200">
-                      Sandbox Review Diagnostics
-                    </h3>
-                    <p className="text-xs text-slate-500 max-w-sm mt-2 leading-relaxed">
-                      Your direct analysis results will compile in this container. Paste or load templates, specify your component class, and press the run analysis executor.
-                    </p>
-
-                    {/* Minimal instructions guidelines */}
-                    <div className="mt-8 w-full max-w-md bg-slate-900/10 border border-slate-900/50 rounded-2xl p-4 text-left flex gap-3 text-[11px] text-slate-550 leading-normal select-none">
-                      <AlertCircle size={14} className="text-indigo-400/90 shrink-0 mt-0.5" />
-                      <div className="flex flex-col gap-1">
-                        <span className="font-semibold text-slate-400">Sandbox Quicktips:</span>
-                        <span>• Select a quick-load preset from the top-right toolbar to view simulated real-time audits on Java models instantly.</span>
-                        <span>• Dynamic line numbers calculate automatically as you paste or adjust structure code contents.</span>
+                    <div className="h-full flex flex-col justify-center items-center text-center p-6">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 mb-4">
+                        <Sparkles size={20} className="text-blue-400" />
                       </div>
+                      <h3 className="text-sm font-semibold text-slate-200">
+                        No Active Review
+                      </h3>
+                      <p className="text-xs text-slate-500 max-w-xs mt-1.5 leading-relaxed">
+                        Select a template or write code in the editor, then click <strong>Run AI Code Review</strong> to generate detailed diagnostics.
+                      </p>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
               </div>
             </div>

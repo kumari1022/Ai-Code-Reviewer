@@ -34,25 +34,27 @@ function Sidebar() {
   ];
 
   return (
-    <aside className="w-[260px] h-screen bg-slate-950 border-r border-slate-900 flex flex-col justify-between p-5 shrink-0 z-50 font-sans">
+    <aside className="w-[260px] h-screen bg-slate-950 border-r border-slate-900 flex flex-col justify-between shrink-0 z-50 font-sans">
       <div>
-        {/* BRAND LOGO */}
-        <Link to="/" className="flex items-center gap-3 px-2 py-3 mb-6 group">
-          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-md shadow-blue-600/20 group-hover:bg-blue-500 transition-colors">
-            <Code2 className="text-white" size={20} />
-          </div>
-          <div>
-            <h1 className="text-base font-bold text-white tracking-tight leading-none">
-              AI Code Reviewer
-            </h1>
-            <span className="text-[10px] text-slate-500 font-medium tracking-wider uppercase mt-1 block">
-              Static Diagnostic Studio
-            </span>
-          </div>
-        </Link>
+        {/* BRAND LOGO HEADER - Exactly h-16 (64px) to align perfectly with Navbar */}
+        <div className="h-16 border-b border-slate-900 px-5 flex items-center shrink-0">
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center shadow-md shadow-blue-600/20 group-hover:bg-blue-500 transition-colors">
+              <Code2 className="text-white" size={18} />
+            </div>
+            <div>
+              <h1 className="text-sm font-bold text-white tracking-tight leading-none">
+                AI Code Reviewer
+              </h1>
+              <span className="text-[10px] text-slate-500 font-medium tracking-wider uppercase mt-0.5 block">
+                Diagnostic Studio
+              </span>
+            </div>
+          </Link>
+        </div>
 
         {/* NAVIGATION LINKS */}
-        <nav className="flex flex-col gap-1">
+        <nav className="p-4 flex flex-col gap-1.5">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
@@ -91,26 +93,28 @@ function Sidebar() {
       </div>
 
       {/* USER PROFILE INFO BLOCK */}
-      <div className="bg-slate-950/80 border border-slate-900 rounded-xl p-3.5 flex flex-col gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">
-            {userInitials}
+      <div className="p-4">
+        <div className="bg-slate-950 border border-slate-900 rounded-xl p-3 flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">
+              {userInitials}
+            </div>
+            <div className="overflow-hidden">
+              <h2 className="text-xs font-semibold text-slate-200 truncate">
+                {role === "ADMIN" ? "Administrator" : "Developer Account"}
+              </h2>
+              <p className="text-[11px] text-slate-500 truncate">{userEmail}</p>
+            </div>
           </div>
-          <div className="overflow-hidden">
-            <h2 className="text-xs font-semibold text-slate-200 truncate">
-              {role === "ADMIN" ? "Administrator" : "Developer Account"}
-            </h2>
-            <p className="text-[11px] text-slate-500 truncate">{userEmail}</p>
-          </div>
-        </div>
 
-        <button
-          onClick={handleLogout}
-          className="flex items-center justify-center gap-2 w-full py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-slate-900 hover:border-red-500/20 transition-all duration-200"
-        >
-          <LogOut size={13} />
-          Sign Out
-        </button>
+          <button
+            onClick={handleLogout}
+            className="flex items-center justify-center gap-2 w-full py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-slate-900 hover:border-red-500/20 transition-all duration-200"
+          >
+            <LogOut size={13} />
+            Sign Out
+          </button>
+        </div>
       </div>
     </aside>
   );
