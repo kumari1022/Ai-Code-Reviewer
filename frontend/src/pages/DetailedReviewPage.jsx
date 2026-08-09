@@ -3,10 +3,10 @@ import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
-import ReactMarkdown from "react-markdown";
 import { ArrowLeft, Terminal, AlertCircle, Sparkles, CheckCircle2 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+import FormattedMarkdown from "../components/FormattedMarkdown";
 import { API_URL } from "../config";
 
 function DetailedReviewPage() {
@@ -128,27 +128,8 @@ function DetailedReviewPage() {
             </div>
 
             {/* Markdown Body */}
-            <div className="prose prose-invert prose-sm max-w-none text-slate-350 leading-relaxed space-y-4">
-              <ReactMarkdown 
-                components={{
-                  h1: ({node, ...props}) => <h3 className="text-lg font-bold text-white mt-6 mb-3 first:mt-0" {...props} />,
-                  h2: ({node, ...props}) => <h4 className="text-base font-bold text-white mt-4 mb-2" {...props} />,
-                  h3: ({node, ...props}) => <h5 className="text-sm font-bold text-slate-200 mt-3 mb-1" {...props} />,
-                  p: ({node, ...props}) => <p className="mb-4 text-slate-300 whitespace-pre-wrap leading-relaxed" {...props} />,
-                  ul: ({node, ...props}) => <ul className="list-disc pl-5 mb-4 space-y-2 text-slate-350" {...props} />,
-                  ol: ({node, ...props}) => <ol className="list-decimal pl-5 mb-4 space-y-2 text-slate-350" {...props} />,
-                  li: ({node, ...props}) => <li className="pl-1" {...props} />,
-                  code: ({node, inline, className, children, ...props}) => {
-                    return (
-                      <code className="bg-slate-900 text-blue-400 px-1.5 py-0.5 rounded font-mono text-xs border border-slate-800" {...props}>
-                        {children}
-                      </code>
-                    );
-                  }
-                }}
-              >
-                {review.review || "*No report review generated yet.*"}
-              </ReactMarkdown>
+            <div>
+              <FormattedMarkdown content={review.review || "*No report review generated yet.*"} />
             </div>
           </div>
 

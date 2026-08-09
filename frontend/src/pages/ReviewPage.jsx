@@ -10,6 +10,7 @@ from "react-syntax-highlighter/dist/cjs/styles/prism";
 import MetricCard from "../components/MetricCard";
 
 import IssueCard from "../components/IssueCard";
+import FormattedMarkdown from "../components/FormattedMarkdown";
 
 import { API_URL } from "../config";
 
@@ -180,19 +181,15 @@ function ReviewPage() {
 
         {/* AI REVIEW */}
 
-        <div className="bg-slate-900 p-6 rounded-2xl">
+        <div className="bg-slate-900 border border-slate-850 p-6 rounded-2xl">
 
-          <h2 className="text-3xl font-bold mb-4">
+          <h2 className="text-2xl font-bold mb-4 text-white">
 
-            AI Review
+            AI Review Report
 
           </h2>
 
-          <p className="text-slate-300 whitespace-pre-wrap leading-8">
-
-            {review}
-
-          </p>
+          <FormattedMarkdown content={review} />
 
         </div>
 

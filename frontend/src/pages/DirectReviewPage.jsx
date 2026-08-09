@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
@@ -20,6 +19,7 @@ import {
 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+import FormattedMarkdown from "../components/FormattedMarkdown";
 import { API_URL } from "../config";
 
 // Production Java scenarios for live interactive audit demonstrations
@@ -482,27 +482,8 @@ function DirectReviewPage() {
                       </button>
                     </div>
                   ) : (
-                    <div className="prose prose-invert prose-sm max-w-none text-slate-350 leading-relaxed overflow-y-auto max-h-[480px] pr-2 space-y-4">
-                      <ReactMarkdown
-                        components={{
-                          h1: ({node, ...props}) => <h3 className="text-lg font-bold text-white mt-6 mb-3 first:mt-0 pb-1.5 border-b border-slate-900" {...props} />,
-                          h2: ({node, ...props}) => <h4 className="text-base font-bold text-white mt-5 mb-2.5" {...props} />,
-                          h3: ({node, ...props}) => <h5 className="text-sm font-bold text-slate-200 mt-4 mb-2" {...props} />,
-                          p: ({node, ...props}) => <p className="mb-4 text-slate-300 whitespace-pre-wrap leading-relaxed" {...props} />,
-                          ul: ({node, ...props}) => <ul className="list-disc pl-5 mb-4 space-y-2 text-slate-350" {...props} />,
-                          ol: ({node, ...props}) => <ol className="list-decimal pl-5 mb-4 space-y-2 text-slate-350" {...props} />,
-                          li: ({node, ...props}) => <li className="pl-1" {...props} />,
-                          code: ({node, inline, className, children, ...props}) => {
-                            return (
-                              <code className="bg-slate-900/60 text-blue-400 px-1.5 py-0.5 rounded font-mono text-xs border border-slate-800" {...props}>
-                                {children}
-                              </code>
-                            );
-                          }
-                        }}
-                      >
-                        {review}
-                      </ReactMarkdown>
+                    <div className="overflow-y-auto max-h-[480px] pr-2">
+                      <FormattedMarkdown content={review} />
                     </div>
                   )
                 ) : (

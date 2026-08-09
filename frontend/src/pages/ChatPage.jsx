@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
-import ReactMarkdown from "react-markdown";
 import { ClipLoader } from "react-spinners";
 import { Send, Sparkles, User, Terminal, Code2 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+import FormattedMarkdown from "../components/FormattedMarkdown";
 import { API_URL } from "../config";
 
 function ChatPage() {
@@ -147,24 +147,14 @@ function ChatPage() {
                   className={`px-4 py-3 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                     msg.sender === "user"
                       ? "bg-blue-600 text-white rounded-tr-none font-medium"
-                      : "bg-slate-950/60 border border-slate-900 text-slate-200 rounded-tl-none prose prose-invert prose-sm max-w-none"
+                      : "bg-slate-950/60 border border-slate-900 text-slate-200 rounded-tl-none w-full"
                   }`}
                 >
-                  <ReactMarkdown
-                    components={{
-                      p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
-                      pre: ({node, ...props}) => <pre className="bg-slate-950 border border-slate-900 rounded-lg p-3 my-2 overflow-x-auto text-xs" {...props} />,
-                      code: ({node, inline, className, children, ...props}) => {
-                        return (
-                          <code className="bg-slate-900 text-blue-400 px-1 py-0.5 rounded font-mono text-xs" {...props}>
-                            {children}
-                          </code>
-                        );
-                      }
-                    }}
-                  >
-                    {msg.text}
-                  </ReactMarkdown>
+                  {msg.sender === "user" ? (
+                    <p className="whitespace-pre-wrap">{msg.text}</p>
+                  ) : (
+                    <FormattedMarkdown content={msg.text} />
+                  )}
                 </div>
               </div>
             ))}
