@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, Code2, Shield, User, ArrowRight } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8081";
+import { API_URL } from "../config";
 
 function LoginPage() {
   const navigate = useNavigate();

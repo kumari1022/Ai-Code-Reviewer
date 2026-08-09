@@ -4,7 +4,7 @@ import { UploadCloud, FileCode, CheckCircle, AlertCircle, X } from "lucide-react
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8081";
+import { API_URL } from "../config";
 
 function UploadPage() {
   const [file, setFile] = useState(null);
