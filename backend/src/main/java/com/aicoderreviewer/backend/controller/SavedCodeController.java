@@ -1,6 +1,7 @@
 package com.aicoderreviewer.backend.controller;
 
 import com.aicoderreviewer.backend.dto.SavedCodeDTO;
+import com.aicoderreviewer.backend.dto.SavedCodeRequest;
 import com.aicoderreviewer.backend.security.JWTService;
 import com.aicoderreviewer.backend.service.SavedCodeService;
 import lombok.RequiredArgsConstructor;
@@ -21,12 +22,12 @@ public class SavedCodeController {
 
     @PostMapping
     public ResponseEntity<SavedCodeDTO> saveCode(
-            @RequestBody SavedCodeDTO dto,
+            @RequestBody SavedCodeRequest request,
             Authentication authentication,
             @RequestHeader(value = "Authorization", required = false) String authHeader
     ) {
         String email = extractEmail(authentication, authHeader);
-        return ResponseEntity.ok(savedCodeService.saveCode(email, dto));
+        return ResponseEntity.ok(savedCodeService.saveCode(email, request));
     }
 
     @GetMapping

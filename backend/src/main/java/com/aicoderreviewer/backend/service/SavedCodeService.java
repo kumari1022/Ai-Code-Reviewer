@@ -1,6 +1,7 @@
 package com.aicoderreviewer.backend.service;
 
 import com.aicoderreviewer.backend.dto.SavedCodeDTO;
+import com.aicoderreviewer.backend.dto.SavedCodeRequest;
 import com.aicoderreviewer.backend.model.SavedCode;
 import com.aicoderreviewer.backend.user.Role;
 import com.aicoderreviewer.backend.user.User;
@@ -19,7 +20,7 @@ public class SavedCodeService {
     private final SavedCodeRepository savedCodeRepository;
     private final UserRepository userRepository;
 
-    public SavedCodeDTO saveCode(String email, SavedCodeDTO dto) {
+    public SavedCodeDTO saveCode(String email, SavedCodeRequest request) {
         User user = userRepository.findByEmail(email)
                 .orElseGet(() -> userRepository.findAll().stream().findFirst()
                         .orElseGet(() -> userRepository.save(User.builder()
@@ -30,16 +31,24 @@ public class SavedCodeService {
                                 .role(Role.USER)
                                 .build())));
 
-        String language = dto.getLanguage();
+        String language = request.getLanguage();
         if (language == null || language.isBlank()) {
-            language = detectLanguageFromFileName(dto.getFileName());
+            language = detectLanguageFromFileName(request.getFileName());
         }
 
+        String fileName = (request.getFileName() != null && !request.getFileName().isBlank())
+                ? request.getFileName()
+                : "Main.java";
+
+        String title = (request.getTitle() != null && !request.getTitle().isBlank())
+                ? request.getTitle()
+                : fileName;
+
         SavedCode savedCode = SavedCode.builder()
-                .title(dto.getTitle() != null && !dto.getTitle().isBlank() ? dto.getTitle() : dto.getFileName())
-                .fileName(dto.getFileName() != null ? dto.getFileName() : "Main.java")
+                .title(title)
+                .fileName(fileName)
                 .language(language)
-                .code(dto.getCode() != null ? dto.getCode() : "")
+                .code(request.getCode() != null ? request.getCode() : "")
                 .user(user)
                 .build();
 
