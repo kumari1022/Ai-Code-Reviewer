@@ -284,8 +284,8 @@ function DirectReviewPage() {
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
-  // CODE EXECUTION SIMULATION & OUTPUT PARSER
-  const runCode = () => {
+  // REAL SERVER CODE EXECUTION PROCESS RUNNER
+  const runCode = async () => {
     if (!code.trim()) {
       alert("Please enter code to run.");
       return;
@@ -293,60 +293,40 @@ function DirectReviewPage() {
 
     setActiveRightTab("terminal");
     setRunningCode(true);
-    setTerminalLogs([`$ Compiling and executing ${fileName}...`]);
+    setTerminalLogs([`$ Executing ${fileName} on server process runner...`]);
 
-    setTimeout(() => {
-      const logs = [];
-      const startTime = performance.now();
-
-      // Extract print / console / stdout statements across languages
-      const outputMatches = [];
-      const lines = code.split("\n");
-
-      lines.forEach((line) => {
-        const trimmed = line.trim();
-        // Java: System.out.println(...) / System.out.print(...)
-        let match = trimmed.match(/System\.out\.print(?:ln)?\s*\((.*?)\);?/);
-        if (match) outputMatches.push(evalCleanString(match[1]));
-
-        // Python: print(...)
-        match = trimmed.match(/^print\s*\((.*?)\)/);
-        if (match) outputMatches.push(evalCleanString(match[1]));
-
-        // JavaScript: console.log(...)
-        match = trimmed.match(/console\.log\s*\((.*?)\);?/);
-        if (match) outputMatches.push(evalCleanString(match[1]));
-
-        // C++: std::cout << ... << std::endl;
-        match = trimmed.match(/std::cout\s*<<\s*(.*?);/);
-        if (match) {
-          const parts = match[1].split(/<</).map(p => p.trim()).filter(p => p !== "std::endl" && p !== "endl");
-          parts.forEach(p => outputMatches.push(evalCleanString(p)));
-        }
-
-        // Go: fmt.Println(...) / fmt.Print(...)
-        match = trimmed.match(/fmt\.Print(?:ln)?\s*\((.*?)\)/);
-        if (match) outputMatches.push(evalCleanString(match[1]));
-
-        // Rust: println!(...) / print!(...)
-        match = trimmed.match(/print(?:ln)?!\s*\((.*?)\);?/);
-        if (match) outputMatches.push(evalCleanString(match[1]));
+    try {
+      const response = await axios.post(`${API_URL}/api/execute`, {
+        fileName,
+        code
       });
 
-      const execTime = Math.round(performance.now() - startTime + Math.random() * 15 + 8);
+      const { stdout, stderr, exitCode, executionTimeMs } = response.data;
+      const logs = [`$ Executing ${fileName} on server process runner...`];
 
-      if (outputMatches.length > 0) {
-        outputMatches.forEach(out => logs.push(out));
-      } else {
-        logs.push("Hello, World!");
+      if (stdout && stdout.trim()) {
+        logs.push(stdout.trim());
+      }
+      if (stderr && stderr.trim()) {
+        logs.push(`⚠️ Server Log / Error:\n${stderr.trim()}`);
+      }
+      if ((!stdout || !stdout.trim()) && (!stderr || !stderr.trim())) {
+        logs.push("[Program executed successfully with no stdout output]");
       }
 
       logs.push("");
-      logs.push(`[Process exited with code 0 in ${execTime}ms]`);
-
+      logs.push(`[Process finished with exit code ${exitCode} in ${executionTimeMs}ms]`);
       setTerminalLogs(logs);
+    } catch (error) {
+      console.error(error);
+      setTerminalLogs([
+        `$ Executing ${fileName} on server process runner...`,
+        `⚠️ Server Execution Error: ${error.response?.data || error.message || "Backend server unreachable"}`,
+        `[Process terminated]`
+      ]);
+    } finally {
       setRunningCode(false);
-    }, 600);
+    }
   };
 
   const evalCleanString = (rawStr) => {
